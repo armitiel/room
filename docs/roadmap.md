@@ -3,7 +3,7 @@
 2. Spisać kryteria zgodności geometrii i docelowe urządzenia.
 3. Ręcznie przygotować pierwszą zatwierdzoną scenę JSON jako punkt odniesienia.
 4. Dodać ekstrakcję AI i porównać z punktem odniesienia; mierzyć błędy zamiast zakładać pełną automatyzację.
-5. Zaimplementować generator Blender, eksport i raport brakujących modeli.
+5. Zaimplementować generator Blender, eksport i raport brakujących modeli. [zrobione: geometria ścian, otwory, eksport FBX/glTF, raport brakujących modeli; zostaje: materiały, warianty wykończenia, światło i wspólne ściany między pomieszczeniami]
 6. Utworzyć projekt Unreal z testowym pomieszczeniem; sprawdzić import i spacer.
 7. Dodać rzeczywiste produkty i dwa style; przegląd wizualny całej sceny.
 8. Wykonać build oraz jeden zdalny stream; dopiero potem osadzić na stronie.

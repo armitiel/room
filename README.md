@@ -4,7 +4,7 @@ Platforma B2B do interaktywnych wizualizacji wnętrz nieruchomości w przegląda
 
 ## Cel i status
 Zamienić rzut i zdjęcia lokalu w scenę o sprawdzonych wymiarach, umeblowaną rzeczywistymi produktami, a następnie udostępnić spacer i warianty aranżacji przez stronę internetową.
-Stan: szkielet projektu i specyfikacja MVP. Nie ma jeszcze modelu AI, gotowej sceny, aplikacji Unreal ani uruchomionego streamingu.
+Stan: działa warstwa danych i generator geometrii. Scene.json ma walidator, a zatwierdzona scena buduje się w Blenderze i eksportuje do FBX/glTF. Nie ma jeszcze modelu AI, katalogu produktów, aplikacji Unreal ani uruchomionego streamingu.
 
 ## Cele krok po kroku
 1. Pozyskać rzut z wymiarami, wysokość pomieszczeń i zdjęcia jednego lokalu.
@@ -40,7 +40,7 @@ Strona przesyła sterowanie i identyfikator wariantu do działającej aplikacji.
 Blender automatyzuje przygotowanie geometrii; Unreal renderuje scenę. Odtwarzanie filmu AI nie zastępuje spójnej, interaktywnej geometrii.
 
 ## Struktura
-- blender/scripts/ — skrypty przygotowania, walidacji i eksportu scen.
+- blender/scripts/ — walidator, generator geometrii i eksporter; rdzen `roomlib` liczy wymiary bez Blendera i ma testy jednostkowe.
 - unreal/ — miejsce na rzeczywisty projekt utworzony w edytorze.
 - web/ — frontend oferty, streamingu i wyboru wariantów.
 - backend/ — analiza wejścia, zadania, walidacja i sesje.
@@ -75,7 +75,19 @@ Kolejność jest planem, nie obietnicą terminu. Estymacja po sprawdzeniu materi
 - Nie publikować danych klientów ani kluczy API. Ustalić retencję i możliwość usunięcia wejścia.
 
 ## Najbliższa czynność
-Dodać jeden rzut z wymiarami i zdjęcia do lokalnego datasets/sample/input/, ustalić brakujące pomiary, a następnie przygotować prawdziwy projekt Unreal i pierwszy model Blender. Przykładowy JSON jest fikcyjny.
+Dodać jeden rzut z wymiarami i zdjęcia do lokalnego datasets/sample/input/, przepisać go ręcznie na scene.json i doprowadzić do statusu approved. Przykładowy JSON obok jest fikcyjny i ma status example_only, więc generator odmówi zbudowania go bez jawnego --allow-unapproved.
+
+Sprawdzenie i zbudowanie sceny:
+
+    python3 blender/scripts/validate_scene.py --scene <plik>
+    blender --background --python-exit-code 1 --python blender/scripts/build_scene.py -- --scene <plik>
+    blender --background work/scenes/<scene_id>/<scene_id>.blend --python blender/scripts/export_scene.py -- --format fbx
+
+Testy rdzenia (bez Blendera):
+
+    python3 -m unittest discover -s blender/scripts/tests -t blender/scripts
+
+Szczegóły i ograniczenia: blender/scripts/README.md.
 
 ## Dokumenty
 - docs/architecture.md — kontrakty i odpowiedzialności
