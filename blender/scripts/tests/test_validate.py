@@ -153,6 +153,90 @@ class TestRooms(unittest.TestCase):
         self.assertTrue(report.ok)
 
 
+class TestExpectedArea(unittest.TestCase):
+    """Kontrola powierzchni: liczba z dokumentacji kontra wielokat.
+
+    Pokoj bazowy to prostokat 5 x 4 m, czyli 20,00 m2.
+    """
+
+    def _with_expected(self, value):
+        data = scene()
+        data["rooms"][0]["expected_area_m2"] = value
+        return data
+
+    def test_matching_area_passes_clean(self):
+        report = check(self._with_expected(20.0))
+        self.assertTrue(report.ok, report.codes())
+        self.assertEqual(report.warnings, [], report.codes())
+
+    def test_absent_field_is_not_an_error(self):
+        report = check(scene())
+        self.assertNotIn("room.expected_area.mismatch", report.codes())
+        self.assertNotIn("room.expected_area.drift", report.codes())
+
+    def test_rounding_difference_is_tolerated(self):
+        # 3 cm2 roznicy - ponizej progu bezwzglednego, cisza.
+        report = check(self._with_expected(20.03))
+        self.assertNotIn("room.expected_area.drift", report.codes())
+        self.assertTrue(report.ok)
+
+    def test_small_drift_only_warns(self):
+        # 2 % roznicy: miedzy progiem ostrzezenia a progiem bledu.
+        report = check(self._with_expected(20.4))
+        self.assertIn("room.expected_area.drift", report.codes())
+        self.assertTrue(report.ok)
+
+    def test_metre_sized_mistake_in_a_draft_only_warns(self):
+        # Szkic wolno miec niedokonczony - generator ma go zbudowac,
+        # zeby bylo co ogladac i poprawiac.
+        report = check(self._with_expected(25.0))
+        self.assertIn("room.expected_area.mismatch", report.codes())
+        self.assertTrue(report.ok)
+
+    def test_metre_sized_mistake_blocks_an_approved_scene(self):
+        data = self._with_expected(25.0)
+        data["status"] = "approved"
+        report = check(data)
+        self.assertIn("room.expected_area.mismatch", report.codes())
+        self.assertFalse(report.ok)
+
+    def test_approved_scene_with_matching_area_passes(self):
+        data = self._with_expected(20.0)
+        data["status"] = "approved"
+        report = check(data)
+        self.assertTrue(report.ok, report.codes())
+
+    def test_error_message_states_both_numbers(self):
+        report = check(self._with_expected(25.0))
+        issue = [i for i in report.issues if i.code == "room.expected_area.mismatch"][0]
+        self.assertIn("20.00", issue.message)
+        self.assertIn("25.00", issue.message)
+
+    def test_negative_expected_area_is_rejected(self):
+        self.assertIn("room.expected_area.invalid", check(self._with_expected(-5.0)).codes())
+
+    def test_text_expected_area_is_rejected(self):
+        self.assertIn("room.expected_area.invalid", check(self._with_expected("20")).codes())
+
+    def test_tiny_room_uses_absolute_floor_not_percentage(self):
+        # 0,04 m2 roznicy to duzy procent malego pomieszczenia,
+        # ale wciaz mniej niz prog bezwzgledny - nie zglaszamy.
+        data = scene()
+        data["rooms"][0]["polygon_xy_m"] = [[0, 0], [1.2, 0], [1.2, 1], [0, 1]]
+        data["rooms"][0]["openings"] = []
+        data["rooms"][0]["expected_area_m2"] = 1.24
+        report = check(data)
+        self.assertNotIn("room.expected_area.mismatch", report.codes())
+        self.assertNotIn("room.expected_area.drift", report.codes())
+
+    def test_approved_scene_is_blocked_by_area_drift(self):
+        data = self._with_expected(20.4)
+        data["status"] = "approved"
+        report = check(data)
+        self.assertFalse(report.ok)
+        self.assertIn("scene.approved_with_warnings", report.codes())
+
+
 class TestOpenings(unittest.TestCase):
     def _with_opening(self, **fields):
         data = scene()

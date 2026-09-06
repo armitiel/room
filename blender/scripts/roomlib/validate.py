@@ -17,6 +17,9 @@ from typing import Any, Dict, List, Optional, Sequence
 from . import geometry as geo
 from . import scene_io
 from .constants import (
+    AREA_ABSOLUTE_FLOOR_M2,
+    AREA_ERROR_RATIO,
+    AREA_WARNING_RATIO,
     BUILDABLE_STATUSES,
     COORDINATE_SYSTEM,
     EPS_M,
@@ -189,7 +192,58 @@ def _check_header(scene: Dict[str, Any], report: Report) -> None:
         )
 
 
-def _check_room_polygon(room: Dict[str, Any], path: str, report: Report):
+def _check_expected_area(
+    room: Dict[str, Any], computed_m2: float, path: str, report: Report, strict: bool = True
+) -> None:
+    """Porownuje powierzchnie z wielokata z liczba przepisana z dokumentacji.
+
+    To najtanszy dostepny test poprawnosci przepisania rzutu: jesli ktos
+    pomyli sie o metr przy jednej scianie, powierzchnia natychmiast przestaje
+    sie zgadzac. Pole jest opcjonalne - jego brak nie jest bledem, ale jego
+    obecnosc zamienia "chyba dobrze przepisalem" w sprawdzalna liczbe.
+
+    Powaga zalezy od statusu sceny. Szkic wolno miec niedokonczony - od tego
+    jest szkicem, a generator ma go zbudowac, zeby bylo co ogladac i poprawiac.
+    Scena zatwierdzona musi sie zgadzac, bo na niej opiera sie obietnica
+    "wymiary sprawdzone".
+    """
+    expected = room.get("expected_area_m2")
+    if expected is None:
+        return
+    if not _positive(expected):
+        report.error(
+            "room.expected_area.invalid",
+            path + ".expected_area_m2",
+            "expected_area_m2 musi byc liczba dodatnia albo nie moze go byc wcale.",
+        )
+        return
+
+    difference = computed_m2 - expected
+    absolute = abs(difference)
+    if absolute <= AREA_ABSOLUTE_FLOOR_M2:
+        return
+
+    ratio = absolute / expected
+    message = (
+        "Z wielokata wychodzi {:.2f} m2, a dokumentacja podaje {:.2f} m2 "
+        "(roznica {:+.2f} m2, {:.1f} %).".format(computed_m2, expected, difference, ratio * 100)
+    )
+
+    if ratio > AREA_ERROR_RATIO:
+        tail = " Rzut przepisano blednie - popraw wielokat, nie liczbe."
+        if strict:
+            report.error("room.expected_area.mismatch", path + ".polygon_xy_m", message + tail)
+        else:
+            report.warning("room.expected_area.mismatch", path + ".polygon_xy_m", message + tail)
+    elif ratio > AREA_WARNING_RATIO:
+        report.warning(
+            "room.expected_area.drift",
+            path + ".polygon_xy_m",
+            message + " Rozbieznosc w granicach zaokraglen, ale warto spojrzec.",
+        )
+
+
+def _check_room_polygon(room: Dict[str, Any], path: str, report: Report, strict: bool = True):
     raw = room.get("polygon_xy_m")
     if not isinstance(raw, list) or len(raw) < 3:
         report.error(
@@ -238,6 +292,8 @@ def _check_room_polygon(room: Dict[str, Any], path: str, report: Report):
     if room_area <= EPS_M:
         report.error("room.polygon.zero_area", path + ".polygon_xy_m", "Pole pomieszczenia wynosi zero.")
         return None
+
+    _check_expected_area(room, room_area, path, report, strict)
     if room_area < MIN_ROOM_AREA_M2:
         report.warning(
             "room.polygon.tiny",
@@ -384,6 +440,7 @@ def _check_openings(
 
 
 def _check_rooms(scene: Dict[str, Any], report: Report) -> Dict[str, Any]:
+    strict = scene.get("status") == STATUS_APPROVED
     rooms = scene.get("rooms")
     geometry_by_room: Dict[str, Any] = {}
 
@@ -424,7 +481,7 @@ def _check_rooms(scene: Dict[str, Any], report: Report) -> Dict[str, Any]:
                 ),
             )
 
-        polygon = _check_room_polygon(room, path, report)
+        polygon = _check_room_polygon(room, path, report, strict)
         if polygon is not None:
             _check_openings(room, polygon, height_m, path, report)
             if room_id:

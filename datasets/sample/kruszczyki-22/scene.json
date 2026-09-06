@@ -1,0 +1,500 @@
+{
+  "schema_version": "0.1",
+  "scene_id": "kruszczyki-22-parter",
+  "units": "m",
+  "coordinate_system": "right_handed_z_up",
+  "status": "draft",
+  "sources": [
+    {
+      "kind": "published_floor_plan",
+      "publisher": "ARCHON+ Biuro Projektow",
+      "design": "Dom w kruszczykach 22",
+      "url": "https://www.archon.pl/projekty-domow/projekt-dom-w-kruszczykach-22-md1827af5309ce",
+      "retrieved": "2026-09-06",
+      "rights": "Projekt jest utworem ARCHON+. Rekonstrukcja sluzy wylacznie testowi wewnetrznemu potoku. Publikacja i pokazywanie klientom wymaga zgody pracowni.",
+      "note": "Wysokosc 2,70 m przyjeta - rzut jej nie podaje. Do potwierdzenia w dokumentacji."
+    }
+  ],
+  "rooms": [
+    {
+      "id": "salon",
+      "name": "Salon z jadalnia",
+      "polygon_xy_m": [
+        [
+          0.02,
+          2.65
+        ],
+        [
+          4.53,
+          2.65
+        ],
+        [
+          4.53,
+          7.8
+        ],
+        [
+          0.02,
+          7.8
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 23.23,
+      "openings": [
+        {
+          "kind": "window",
+          "wall_index": 2,
+          "offset_m": 1.2,
+          "width_m": 2.6,
+          "sill_m": 0.0,
+          "height_m": 2.2,
+          "note": "przeszklenie na taras, 260/220 z rzutu"
+        },
+        {
+          "kind": "window",
+          "wall_index": 3,
+          "offset_m": 1.6,
+          "width_m": 1.8,
+          "sill_m": 0.0,
+          "height_m": 2.2,
+          "note": "przeszklenie boczne, 180/220 z rzutu"
+        },
+        {
+          "kind": "passage",
+          "wall_index": 0,
+          "offset_m": 0.0,
+          "width_m": 2.96,
+          "sill_m": 0.0,
+          "height_m": 2.55,
+          "note": "kuchnia otwarta na salon - brak sciany na rzucie"
+        },
+        {
+          "kind": "door",
+          "wall_index": 1,
+          "offset_m": 0.55,
+          "width_m": 0.9,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "drzwi na korytarz, pozycja przyblizona"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": "Oba przeszklenia siegaja podlogi (wyjscie na taras) - ostrzezenie walidatora jest oczekiwane."
+    },
+    {
+      "id": "kuchnia",
+      "name": "Kuchnia",
+      "polygon_xy_m": [
+        [
+          0.02,
+          0.02
+        ],
+        [
+          2.98,
+          0.02
+        ],
+        [
+          2.98,
+          2.61
+        ],
+        [
+          0.02,
+          2.61
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 7.78,
+      "openings": [
+        {
+          "kind": "window",
+          "wall_index": 0,
+          "offset_m": 0.6,
+          "width_m": 2.0,
+          "sill_m": 0.9,
+          "height_m": 1.3,
+          "note": "200/130 z rzutu"
+        },
+        {
+          "kind": "passage",
+          "wall_index": 2,
+          "offset_m": 0.0,
+          "width_m": 2.96,
+          "sill_m": 0.0,
+          "height_m": 2.55,
+          "note": "otwarcie na salon"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": "Roznica 0,11 m2 wobec dokumentacji - do sprawdzenia wymiar 263 cm."
+    },
+    {
+      "id": "kotlownia",
+      "name": "Kotlownia z pralnia",
+      "polygon_xy_m": [
+        [
+          3.14,
+          0.02
+        ],
+        [
+          4.6,
+          0.02
+        ],
+        [
+          4.6,
+          2.23
+        ],
+        [
+          3.14,
+          2.23
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 3.23,
+      "openings": [
+        {
+          "kind": "window",
+          "wall_index": 0,
+          "offset_m": 0.35,
+          "width_m": 0.7,
+          "sill_m": 1.3,
+          "height_m": 1.3,
+          "note": "70/130 z rzutu"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": ""
+    },
+    {
+      "id": "wiatrolap",
+      "name": "Wiatrolap",
+      "polygon_xy_m": [
+        [
+          4.76,
+          0.02
+        ],
+        [
+          6.46,
+          0.02
+        ],
+        [
+          6.46,
+          2.49
+        ],
+        [
+          4.76,
+          2.49
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 4.2,
+      "openings": [
+        {
+          "kind": "door",
+          "wall_index": 0,
+          "offset_m": 0.3,
+          "width_m": 1.05,
+          "sill_m": 0.0,
+          "height_m": 2.1,
+          "note": "drzwi wejsciowe, 105/210 z rzutu"
+        },
+        {
+          "kind": "door",
+          "wall_index": 2,
+          "offset_m": 0.4,
+          "width_m": 0.9,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "drzwi na korytarz, pozycja przyblizona"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": ""
+    },
+    {
+      "id": "lazienka-mala",
+      "name": "Lazienka",
+      "polygon_xy_m": [
+        [
+          6.62,
+          0.02
+        ],
+        [
+          8.08,
+          0.02
+        ],
+        [
+          8.08,
+          2.49
+        ],
+        [
+          6.62,
+          2.49
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 3.61,
+      "openings": [
+        {
+          "kind": "window",
+          "wall_index": 0,
+          "offset_m": 0.35,
+          "width_m": 0.7,
+          "sill_m": 1.3,
+          "height_m": 1.3,
+          "note": "70/130 z rzutu"
+        },
+        {
+          "kind": "door",
+          "wall_index": 2,
+          "offset_m": 0.3,
+          "width_m": 0.8,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "drzwi z korytarza, pozycja przyblizona"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": ""
+    },
+    {
+      "id": "korytarz",
+      "name": "Korytarz",
+      "polygon_xy_m": [
+        [
+          4.69,
+          2.65
+        ],
+        [
+          8.08,
+          2.65
+        ],
+        [
+          8.08,
+          4.01
+        ],
+        [
+          4.69,
+          4.01
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 6.58,
+      "openings": [
+        {
+          "kind": "door",
+          "wall_index": 0,
+          "offset_m": 0.4,
+          "width_m": 0.9,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "do wiatrolapu"
+        },
+        {
+          "kind": "door",
+          "wall_index": 0,
+          "offset_m": 2.2,
+          "width_m": 0.8,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "do lazienki"
+        },
+        {
+          "kind": "door",
+          "wall_index": 2,
+          "offset_m": 1.3,
+          "width_m": 0.9,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "do pokoju srodkowego"
+        },
+        {
+          "kind": "door",
+          "wall_index": 3,
+          "offset_m": 0.3,
+          "width_m": 0.9,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "do salonu"
+        },
+        {
+          "kind": "door",
+          "wall_index": 1,
+          "offset_m": 0.5,
+          "width_m": 0.8,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "do lazienki duzej, polozenie do potwierdzenia"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": "Ksztalt korytarza to najslabiej odczytana czesc rzutu. Z wielokata wychodzi 4,61 m2 wobec 6,58 m2 w dokumentacji - brakuje okolo 2 m2, prawdopodobnie odnogi prowadzacej do pokoi po prawej stronie. Do przepisania z zakupionej dokumentacji."
+    },
+    {
+      "id": "pokoj-srodek",
+      "name": "Pokoj",
+      "polygon_xy_m": [
+        [
+          4.69,
+          4.05
+        ],
+        [
+          8.08,
+          4.05
+        ],
+        [
+          8.08,
+          7.8
+        ],
+        [
+          4.69,
+          7.8
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 12.49,
+      "openings": [
+        {
+          "kind": "window",
+          "wall_index": 2,
+          "offset_m": 0.4,
+          "width_m": 2.6,
+          "sill_m": 0.0,
+          "height_m": 2.2,
+          "note": "260/220 z rzutu"
+        },
+        {
+          "kind": "door",
+          "wall_index": 0,
+          "offset_m": 1.3,
+          "width_m": 0.9,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "z korytarza"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": "Roznica 0,22 m2 wobec dokumentacji - do sprawdzenia wymiar 343 cm."
+    },
+    {
+      "id": "pokoj-polnoc",
+      "name": "Pokoj",
+      "polygon_xy_m": [
+        [
+          8.24,
+          4.94
+        ],
+        [
+          11.8,
+          4.94
+        ],
+        [
+          11.8,
+          7.8
+        ],
+        [
+          8.24,
+          7.8
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 10.18,
+      "openings": [
+        {
+          "kind": "window",
+          "wall_index": 2,
+          "offset_m": 0.8,
+          "width_m": 2.0,
+          "sill_m": 0.9,
+          "height_m": 1.3,
+          "note": "200/130 z rzutu"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": ""
+    },
+    {
+      "id": "lazienka-duza",
+      "name": "Lazienka",
+      "polygon_xy_m": [
+        [
+          9.36,
+          3.04
+        ],
+        [
+          11.8,
+          3.04
+        ],
+        [
+          11.8,
+          4.78
+        ],
+        [
+          9.36,
+          4.78
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 4.25,
+      "openings": [
+        {
+          "kind": "window",
+          "wall_index": 1,
+          "offset_m": 0.85,
+          "width_m": 0.7,
+          "sill_m": 1.3,
+          "height_m": 1.3,
+          "note": "70/130 z rzutu"
+        },
+        {
+          "kind": "door",
+          "wall_index": 3,
+          "offset_m": 0.5,
+          "width_m": 0.8,
+          "sill_m": 0.0,
+          "height_m": 2.0,
+          "note": "z korytarza, polozenie do potwierdzenia"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": ""
+    },
+    {
+      "id": "pokoj-poludnie",
+      "name": "Pokoj",
+      "polygon_xy_m": [
+        [
+          8.24,
+          0.02
+        ],
+        [
+          11.8,
+          0.02
+        ],
+        [
+          11.8,
+          2.88
+        ],
+        [
+          8.24,
+          2.88
+        ]
+      ],
+      "height_m": 2.7,
+      "expected_area_m2": 9.55,
+      "openings": [
+        {
+          "kind": "window",
+          "wall_index": 0,
+          "offset_m": 0.8,
+          "width_m": 2.0,
+          "sill_m": 0.9,
+          "height_m": 1.3,
+          "note": "200/130 z rzutu"
+        }
+      ],
+      "evidence": "Wymiary konstrukcyjne odczytane z rzutu interaktywnego ARCHON+ (archon.pl/rzut/md1827af5309ce/1), pomniejszone o 2 cm tynku na kazda strone. Siatka domyka sie w obu kierunkach: 1182 cm w poziomie, 782 cm w pionie.",
+      "review_notes": "Wielokat daje 10,18 m2 wobec 9,55 m2 w dokumentacji. Roznica 0,63 m2 sugeruje wneke lub zabudowe, ktorej nie widac na zrzucie rzutu. Do potwierdzenia."
+    }
+  ],
+  "furniture": [],
+  "variants": []
+}

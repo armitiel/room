@@ -172,6 +172,7 @@ const EMBEDDED_SCENE = window.ROOM_SCENE || null;
 const EYE_HEIGHT_M = 1.65;
 const FLOOR_LEVEL_M = 0.0;
 const BODY_RADIUS_M = 0.35;
+const DOORWAY_DEPTH_M = 0.6;
 const WALK_SPEED_MS = 2.6;
 const SPRINT_MULTIPLIER = 1.9;
 
@@ -215,7 +216,48 @@ function distanceToSegment(px, py, ax, ay, bx, by) {
   return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
 }
 
-function makeStandTest(polygons, radius) {
+/** Prostokaty przejscia wyliczone z otworow typu door/passage.
+ *
+ *  Bez nich kazde pomieszczenie byloby osobnym pudelkiem: obrysy sasiadow
+ *  dzieli grubosc scianki, wiec punkt w progu nie nalezy do zadnego z nich
+ *  i chodzenie konczy sie w pierwszym pokoju. Prostokat rozciagniety w poprzek
+ *  sciany zszywa oba obrysy w jedna przestrzen.
+ */
+function doorwayRects(rooms, depth) {
+  const rects = [];
+  for (const room of rooms) {
+    const poly = room.polygon_xy_m || [];
+    if (poly.length < 3) continue;
+    for (const opening of room.openings || []) {
+      if (opening.kind !== 'door' && opening.kind !== 'passage') continue;
+      const index = opening.wall_index;
+      if (typeof index !== 'number' || index < 0 || index >= poly.length) continue;
+
+      const a = poly[index];
+      const b = poly[(index + 1) % poly.length];
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const length = Math.hypot(dx, dy);
+      if (length < 1e-6) continue;
+
+      const ux = dx / length, uy = dy / length;   // wzdluz sciany
+      const nx = -uy, ny = ux;                    // w poprzek sciany
+      const start = opening.offset_m;
+      const end = start + opening.width_m;
+      const half = depth;
+
+      rects.push([
+        [a[0] + ux * start - nx * half, a[1] + uy * start - ny * half],
+        [a[0] + ux * end - nx * half, a[1] + uy * end - ny * half],
+        [a[0] + ux * end + nx * half, a[1] + uy * end + ny * half],
+        [a[0] + ux * start + nx * half, a[1] + uy * start + ny * half],
+      ]);
+    }
+  }
+  return rects;
+}
+
+function makeStandTest(polygons, radius, doorways) {
+  const gates = doorways || [];
   return (px, py) => {
     for (const poly of polygons) {
       if (!pointInPolygon(poly, px, py)) continue;
@@ -225,6 +267,10 @@ function makeStandTest(polygons, radius) {
         if (distanceToSegment(px, py, a[0], a[1], b[0], b[1]) < radius) { clear = false; break; }
       }
       if (clear) return true;
+    }
+    // W progu obrys pokoju sie konczy, ale przejsc trzeba dac.
+    for (const gate of gates) {
+      if (pointInPolygon(gate, px, py)) return true;
     }
     return false;
   };
@@ -495,6 +541,7 @@ function describe(data) {
 
   el('scene-name').textContent = data.scene_id || 'Scena';
   const parts = [`${area.toFixed(1).replace('.', ',')} m²`];
+  if (rooms.length > 1) parts.push(`${rooms.length} pomieszczeń`);
   if (height) parts.push(`wys. ${height.toFixed(2).replace('.', ',')} m`);
   parts.push(`${openings} ${pluralOpenings(openings)}`);
   el('scene-meta').textContent = parts.join(' · ');
@@ -520,24 +567,54 @@ function frameModel(model, data) {
 
   const rooms = data.rooms || [];
   const polygons = rooms.map((room) => room.polygon_xy_m || []).filter((p) => p.length >= 3);
-  canStand = polygons.length ? makeStandTest(polygons, BODY_RADIUS_M) : () => true;
+  const doorways = doorwayRects(rooms, DOORWAY_DEPTH_M);
+  canStand = polygons.length ? makeStandTest(polygons, BODY_RADIUS_M, doorways) : () => true;
 
   if (polygons.length) {
-    const [px, py] = findSpawn(polygons[0], canStand);
+    // Start w najwiekszym pomieszczeniu - w domu wielopokojowym pierwszy
+    // wpis na liscie bywa wiatrolapem, co jest kiepskim pierwszym kadrem.
+    let biggest = polygons[0];
+    for (const poly of polygons) {
+      if (polygonArea(poly) > polygonArea(biggest)) biggest = poly;
+    }
+    const [px, py] = findSpawn(biggest, canStand);
     const [wx, wz] = worldFromPlan(px, py);
     // Kontrakt sceny mowi, ze z = 0 to poziom podlogi wykonczonej, a eksport
     // zachowuje ten poziom jako y = 0. Liczenie od spodu plyty dawaloby
     // wzrost mniejszy o jej grubosc.
     spawn.position.set(wx, FLOOR_LEVEL_M + EYE_HEIGHT_M, wz);
 
-    // Patrzymy w strone najdalszego wierzcholka - to zwykle najciekawszy kadr.
-    let far = polygons[0][0];
-    let farDistance = -Infinity;
-    for (const [vx, vy] of polygons[0]) {
-      const distance = Math.hypot(vx - px, vy - py);
-      if (distance > farDistance) { farDistance = distance; far = [vx, vy]; }
+    // Kadr startowy kierujemy na najszersze okno pomieszczenia. Widok przez
+    // okno czyta sie od razu jako wnetrze; widok w naroznik wyglada jak blad.
+    let target = null;
+    let widest = 0;
+    const spawnRoom = rooms.find((room) => (room.polygon_xy_m || []) === biggest)
+      || rooms.find((room) => polygonArea(room.polygon_xy_m || []) === polygonArea(biggest));
+
+    if (spawnRoom) {
+      const poly = spawnRoom.polygon_xy_m;
+      for (const opening of spawnRoom.openings || []) {
+        if (opening.kind !== 'window' || opening.width_m <= widest) continue;
+        const index = opening.wall_index;
+        if (typeof index !== 'number' || index < 0 || index >= poly.length) continue;
+        const a = poly[index], b = poly[(index + 1) % poly.length];
+        const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (length < 1e-6) continue;
+        const t = (opening.offset_m + opening.width_m / 2) / length;
+        widest = opening.width_m;
+        target = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      }
     }
-    const [fx, fz] = worldFromPlan(far[0], far[1]);
+
+    if (!target) {
+      let farDistance = -Infinity;
+      for (const [vx, vy] of biggest) {
+        const distance = Math.hypot(vx - px, vy - py);
+        if (distance > farDistance) { farDistance = distance; target = [vx, vy]; }
+      }
+    }
+
+    const [fx, fz] = worldFromPlan(target[0], target[1]);
     spawn.heading = Math.atan2(wx - fx, wz - fz);
   } else {
     spawn.position.set(center.x, FLOOR_LEVEL_M + EYE_HEIGHT_M, center.z);

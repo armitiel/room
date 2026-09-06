@@ -34,3 +34,10 @@ MIN_ROOM_AREA_M2 = 1.0
 MAX_ROOM_AREA_M2 = 500.0
 
 DEFAULT_WALL_THICKNESS_M = 0.12
+
+# Kontrola powierzchni: pokoj moze podac expected_area_m2 przepisane
+# z dokumentacji. Rozbieznosc miedzy ta liczba a powierzchnia policzona
+# z wielokata jest najtanszym testem, czy rzut przepisano poprawnie.
+AREA_WARNING_RATIO = 0.01   # 1 % - ostrzezenie, warto spojrzec
+AREA_ERROR_RATIO = 0.03     # 3 % - blad, rzut przepisano zle
+AREA_ABSOLUTE_FLOOR_M2 = 0.05  # przy malych pomieszczeniach procenty klamia
