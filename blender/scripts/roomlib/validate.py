@@ -18,6 +18,8 @@ from . import geometry as geo
 from . import scene_io
 from .constants import (
     AREA_ABSOLUTE_FLOOR_M2,
+    FINISH_PATTERNS,
+    SURFACE_ROLES,
     AREA_ERROR_RATIO,
     AREA_WARNING_RATIO,
     BUILDABLE_STATUSES,
@@ -655,6 +657,8 @@ def _check_variants(
     catalog: Dict[str, Dict[str, Any]],
     placed: Dict[str, Any],
     report: Report,
+    finishes: Optional[Dict[str, Any]] = None,
+    room_ids: Optional[Sequence[str]] = None,
 ) -> None:
     variants = scene.get("variants", [])
     if not isinstance(variants, list):
@@ -679,6 +683,8 @@ def _check_variants(
                     path + ".id",
                     "Identyfikator {!r} juz wystapil.".format(variant_id),
                 )
+
+        _check_variant_assignments(variant, path, finishes or {}, room_ids or [], report)
 
         substitutions = variant.get("substitutions", [])
         if not isinstance(substitutions, list):
@@ -730,7 +736,8 @@ def validate_scene(
     _check_header(scene, report)
     geometry_by_room = _check_rooms(scene, report)
     placed = _check_furniture(scene, catalog, geometry_by_room, report, root, check_models)
-    _check_variants(scene, catalog, placed, report)
+    finishes = _check_finishes(scene, report)
+    _check_variants(scene, catalog, placed, report, finishes, list(geometry_by_room.keys()))
 
     if scene.get("status") == STATUS_APPROVED and report.warnings:
         report.error(
@@ -746,3 +753,121 @@ def validate_scene(
 def is_buildable(scene: Dict[str, Any], report: Report) -> bool:
     """Czy scene wolno przekazac do generatora produkcyjnego."""
     return report.ok and scene.get("status") in BUILDABLE_STATUSES
+
+
+def _check_finishes(scene: Dict[str, Any], report: Report) -> Dict[str, Any]:
+    """Biblioteka wykonczen: nazwane materialy, do ktorych odwoluja sie warianty."""
+    finishes = scene.get("finishes")
+    if finishes is None:
+        return {}
+    if not isinstance(finishes, dict):
+        report.error("scene.finishes.type", "$.finishes", "Pole finishes musi byc obiektem JSON.")
+        return {}
+
+    for key, finish in finishes.items():
+        path = "$.finishes.{}".format(key)
+        if not isinstance(finish, dict):
+            report.error("finish.type", path, "Wykonczenie musi byc obiektem JSON.")
+            continue
+
+        name = finish.get("name")
+        if not isinstance(name, str) or not name.strip():
+            report.warning(
+                "finish.name.missing",
+                path + ".name",
+                "Wykonczenie bez nazwy pokaze sie klientowi jako identyfikator techniczny.",
+            )
+
+        pattern = finish.get("pattern", "plain")
+        if pattern not in FINISH_PATTERNS:
+            report.error(
+                "finish.pattern.unknown",
+                path + ".pattern",
+                "Wzor {!r} spoza listy: {}.".format(pattern, ", ".join(FINISH_PATTERNS)),
+            )
+
+        color = finish.get("color")
+        if not isinstance(color, str) or not color.startswith("#") or len(color) not in (4, 7):
+            report.error(
+                "finish.color.invalid",
+                path + ".color",
+                "Kolor musi byc zapisem szesnastkowym, na przyklad #b98a55.",
+            )
+
+        for field in ("roughness", "metalness", "opacity"):
+            value = finish.get(field)
+            if value is None:
+                continue
+            if not _is_number(value) or not 0.0 <= value <= 1.0:
+                report.error(
+                    "finish.{}.range".format(field),
+                    "{}.{}".format(path, field),
+                    "Pole {} musi miescic sie w zakresie od 0 do 1.".format(field),
+                )
+
+        scale = finish.get("scale_m")
+        if scale is not None and not _positive(scale):
+            report.error(
+                "finish.scale.invalid", path + ".scale_m", "scale_m musi byc liczba dodatnia."
+            )
+
+    return finishes
+
+
+def _check_variant_assignments(
+    variant: Dict[str, Any],
+    path: str,
+    finishes: Dict[str, Any],
+    room_ids: Sequence[str],
+    report: Report,
+) -> None:
+    """Przypisania wykonczen w wariancie: rola -> wykonczenie, opcjonalnie w jednym pokoju."""
+    assignments = variant.get("assignments", [])
+    if not isinstance(assignments, list):
+        report.error(
+            "variant.assignments.type", path + ".assignments", "Pole assignments musi byc lista."
+        )
+        return
+
+    covered = set()
+    for index, assignment in enumerate(assignments):
+        item_path = "{}.assignments[{}]".format(path, index)
+        if not isinstance(assignment, dict):
+            report.error("variant.assignment.type", item_path, "Przypisanie musi byc obiektem JSON.")
+            continue
+
+        role = assignment.get("role")
+        if role not in SURFACE_ROLES:
+            report.error(
+                "variant.assignment.role",
+                item_path + ".role",
+                "Rola {!r} spoza listy: {}.".format(role, ", ".join(SURFACE_ROLES)),
+            )
+        else:
+            covered.add(role)
+
+        finish_id = assignment.get("finish")
+        if not isinstance(finish_id, str) or finish_id not in finishes:
+            report.error(
+                "variant.assignment.unknown_finish",
+                item_path + ".finish",
+                "Wykonczenie {!r} nie wystepuje w bibliotece finishes.".format(finish_id),
+            )
+
+        room_id = assignment.get("room_id")
+        if room_id is not None:
+            if not isinstance(room_id, str) or room_id not in room_ids:
+                report.error(
+                    "variant.assignment.unknown_room",
+                    item_path + ".room_id",
+                    "Pomieszczenie {!r} nie istnieje w tej scenie.".format(room_id),
+                )
+
+    if assignments:
+        for role in ("floor", "wall"):
+            if role not in covered:
+                report.warning(
+                    "variant.assignment.gap",
+                    path + ".assignments",
+                    "Wariant nie okresla wykonczenia dla roli {!r} - zostanie material domyslny.".format(role),
+                )

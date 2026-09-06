@@ -145,6 +145,7 @@ def export_gltf(bpy, path, args):
         use_selection=True,
         export_yup=True,
         export_apply=True,
+        export_extras=True,
     )
 
 

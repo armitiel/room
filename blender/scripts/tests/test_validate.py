@@ -476,3 +476,117 @@ class TestApprovalGate(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+FINISHES = {
+    "dab": {"name": "Deska debowa", "pattern": "planks", "color": "#b98a55", "roughness": 0.55},
+    "biel": {"name": "Tynk bialy", "pattern": "plaster", "color": "#eceae6", "roughness": 0.95},
+    "plytka": {"name": "Plytka", "pattern": "tiles", "color": "#dcdcd8", "scale_m": 0.6},
+}
+
+
+def scene_with_finishes(variants=None, finishes=None):
+    data = scene()
+    data["finishes"] = copy.deepcopy(finishes if finishes is not None else FINISHES)
+    data["variants"] = copy.deepcopy(variants if variants is not None else [])
+    return data
+
+
+class TestFinishes(unittest.TestCase):
+    """Biblioteka wykonczen - nazwane materialy, do ktorych odwoluja sie warianty."""
+
+    def test_valid_library_passes(self):
+        report = check(scene_with_finishes())
+        self.assertTrue(report.ok, report.codes())
+
+    def test_absent_library_is_fine(self):
+        report = check(scene())
+        self.assertNotIn("scene.finishes.type", report.codes())
+
+    def test_unknown_pattern_is_rejected(self):
+        finishes = copy.deepcopy(FINISHES)
+        finishes["dab"]["pattern"] = "marmurek"
+        self.assertIn("finish.pattern.unknown", check(scene_with_finishes(finishes=finishes)).codes())
+
+    def test_colour_must_be_hex(self):
+        finishes = copy.deepcopy(FINISHES)
+        finishes["dab"]["color"] = "brazowy"
+        self.assertIn("finish.color.invalid", check(scene_with_finishes(finishes=finishes)).codes())
+
+    def test_roughness_outside_range_is_rejected(self):
+        finishes = copy.deepcopy(FINISHES)
+        finishes["dab"]["roughness"] = 4.0
+        self.assertIn("finish.roughness.range", check(scene_with_finishes(finishes=finishes)).codes())
+
+    def test_negative_scale_is_rejected(self):
+        finishes = copy.deepcopy(FINISHES)
+        finishes["plytka"]["scale_m"] = -0.6
+        self.assertIn("finish.scale.invalid", check(scene_with_finishes(finishes=finishes)).codes())
+
+    def test_missing_name_only_warns(self):
+        finishes = copy.deepcopy(FINISHES)
+        del finishes["dab"]["name"]
+        report = check(scene_with_finishes(finishes=finishes))
+        self.assertIn("finish.name.missing", report.codes())
+        self.assertTrue(report.ok)
+
+
+class TestVariantAssignments(unittest.TestCase):
+    """Wariant przypisuje wykonczenie do roli powierzchni, opcjonalnie w jednym pokoju."""
+
+    def _variant(self, assignments):
+        return [{"id": "basic", "name": "Basic", "assignments": assignments}]
+
+    def test_complete_variant_passes(self):
+        report = check(self._scene([
+            {"role": "floor", "finish": "dab"},
+            {"role": "wall", "finish": "biel"},
+        ]))
+        self.assertTrue(report.ok, report.codes())
+
+    def _scene(self, assignments):
+        return scene_with_finishes(variants=self._variant(assignments))
+
+    def test_unknown_finish_is_rejected(self):
+        codes = check(self._scene([{"role": "floor", "finish": "marmur"}])).codes()
+        self.assertIn("variant.assignment.unknown_finish", codes)
+
+    def test_unknown_role_is_rejected(self):
+        codes = check(self._scene([{"role": "sufit", "finish": "biel"}])).codes()
+        self.assertIn("variant.assignment.role", codes)
+
+    def test_room_scoped_assignment_passes(self):
+        report = check(self._scene([
+            {"role": "floor", "finish": "dab"},
+            {"role": "wall", "finish": "biel"},
+            {"role": "floor", "room_id": "living-room", "finish": "plytka"},
+        ]))
+        self.assertTrue(report.ok, report.codes())
+
+    def test_assignment_to_unknown_room_is_rejected(self):
+        codes = check(self._scene([
+            {"role": "floor", "room_id": "kuchnia", "finish": "dab"},
+        ])).codes()
+        self.assertIn("variant.assignment.unknown_room", codes)
+
+    def test_variant_without_floor_warns_about_the_gap(self):
+        report = check(self._scene([{"role": "wall", "finish": "biel"}]))
+        self.assertIn("variant.assignment.gap", report.codes())
+        self.assertTrue(report.ok)
+
+    def test_two_variants_are_no_longer_flagged_as_single(self):
+        data = scene_with_finishes(variants=[
+            {"id": "basic", "assignments": [{"role": "floor", "finish": "dab"}, {"role": "wall", "finish": "biel"}]},
+            {"id": "premium", "assignments": [{"role": "floor", "finish": "dab"}, {"role": "wall", "finish": "biel"}]},
+        ])
+        report = check(data)
+        self.assertNotIn("scene.variants.single", report.codes())
+        self.assertTrue(report.ok, report.codes())
+
+    def test_assignments_and_substitutions_can_coexist(self):
+        data = scene_with_finishes(variants=[{
+            "id": "basic",
+            "assignments": [{"role": "floor", "finish": "dab"}, {"role": "wall", "finish": "biel"}],
+            "substitutions": [],
+        }])
+        self.assertTrue(check(data).ok)

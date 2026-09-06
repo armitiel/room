@@ -201,6 +201,37 @@ def assign_material(bpy, obj, key):
     obj.data.materials.append(get_material(bpy, key))
 
 
+def box_project_uvs(mesh):
+    """Rozwiniecie UV metoda rzutu prostopadloscianu, 1 jednostka UV = 1 metr.
+
+    Siatki budowane przez from_pydata nie maja wspolrzednych UV, wiec kazda
+    tekstura lezalaby na nich jako jeden rozciagniety piksel. Rzutujemy kazda
+    sciane na te plaszczyzne ukladu, do ktorej jest najblizej rownolegla.
+    Skala w metrach oznacza, ze przegladarka ustawia powtarzanie tekstury
+    wprost z rozmiaru wzoru w metrach, bez zgadywania.
+    """
+    if not mesh.polygons:
+        return
+    mesh.calc_normals_split() if hasattr(mesh, "calc_normals_split") else None
+
+    uv_layer = mesh.uv_layers.new(name="box") if not mesh.uv_layers else mesh.uv_layers[0]
+    data = uv_layer.data
+
+    for polygon in mesh.polygons:
+        normal = polygon.normal
+        ax, ay, az = abs(normal.x), abs(normal.y), abs(normal.z)
+        if az >= ax and az >= ay:
+            pick = lambda co: (co.x, co.y)      # noqa: E731 - powierzchnia pozioma
+        elif ax >= ay:
+            pick = lambda co: (co.y, co.z)      # noqa: E731 - sciana prostopadla do X
+        else:
+            pick = lambda co: (co.x, co.z)      # noqa: E731 - sciana prostopadla do Y
+
+        for loop_index in polygon.loop_indices:
+            vertex = mesh.vertices[mesh.loops[loop_index].vertex_index]
+            data[loop_index].uv = pick(vertex.co)
+
+
 def make_prism(bpy, name, base_xy, z_bottom, z_top, collection):
     """Bryla o pionowych scianach na podstawie wielokata base_xy."""
     import bmesh
@@ -225,6 +256,8 @@ def make_prism(bpy, name, base_xy, z_bottom, z_top, collection):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(mesh)
     bm.free()
+
+    box_project_uvs(mesh)
 
     obj = bpy.data.objects.new(name, mesh)
     collection.objects.link(obj)

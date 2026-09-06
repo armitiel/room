@@ -58,6 +58,9 @@
   #info .warn { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--line); color: #e7c07a; font-size: 11.5px; }
 
   #controls { left: 50%; transform: translateX(-50%); bottom: 1rem; padding: .4rem; display: flex; gap: .25rem; }
+  #variants { right: 1rem; top: 1rem; padding: .4rem; display: flex; flex-direction: column; gap: .25rem; min-width: 8rem; }
+  #variants[hidden] { display: none; }
+  #variants button { text-align: left; }
   button {
     appearance: none; border: 0; border-radius: 7px;
     padding: .5rem .85rem;
@@ -99,6 +102,8 @@
 </div>
 
 <div id="hint" hidden></div>
+
+<div id="variants" class="hud" hidden></div>
 
 <div id="controls" class="hud" hidden>
   <button id="mode-walk" aria-pressed="false">Spacer</button>
@@ -323,6 +328,198 @@ function findSpawn(poly, canStand) {
   return [sx / poly.length, sy / poly.length];
 }
 
+/* --- Wykonczenia -----------------------------------------------------------
+   Tekstury rysujemy proceduralnie w canvasie zamiast pobierac pliki. Powod
+   jest praktyczny: standalone.html ma dzialac bez sieci i miescic sie w mailu,
+   a zdjeciowe tekstury PBR to kilkanascie megabajtow na jeden materiał.
+   Wzor rysowany kodem wystarcza, zeby odroznic deske od plytki i wylewki,
+   a przy wymianie na prawdziwe tekstury zmienia sie tylko ta jedna sekcja. */
+
+const TEXTURE_PX = 512;
+const textureCache = new Map();
+
+function hexToRgb(hex) {
+  const value = hex.replace('#', '');
+  const full = value.length === 3 ? value.split('').map((c) => c + c).join('') : value;
+  return [
+    parseInt(full.slice(0, 2), 16),
+    parseInt(full.slice(2, 4), 16),
+    parseInt(full.slice(4, 6), 16),
+  ];
+}
+
+function shade(hex, amount) {
+  const [r, g, b] = hexToRgb(hex);
+  const mix = (channel) => Math.max(0, Math.min(255, Math.round(channel + amount * 255)));
+  return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
+}
+
+/** Deterministyczny szum - ten sam wariant zawsze wyglada tak samo. */
+function seeded(seed) {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+function drawPlaster(ctx, color, random) {
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, TEXTURE_PX, TEXTURE_PX);
+  for (let i = 0; i < 9000; i++) {
+    const x = random() * TEXTURE_PX;
+    const y = random() * TEXTURE_PX;
+    const light = (random() - 0.5) * 0.06;
+    ctx.fillStyle = shade(color, light);
+    ctx.fillRect(x, y, 2, 2);
+  }
+}
+
+function drawScreed(ctx, color, random) {
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, TEXTURE_PX, TEXTURE_PX);
+  for (let i = 0; i < 260; i++) {
+    const x = random() * TEXTURE_PX;
+    const y = random() * TEXTURE_PX;
+    const r = 12 + random() * 60;
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+    gradient.addColorStop(0, shade(color, (random() - 0.5) * 0.10));
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  for (let i = 0; i < 4000; i++) {
+    ctx.fillStyle = shade(color, (random() - 0.5) * 0.12);
+    ctx.fillRect(random() * TEXTURE_PX, random() * TEXTURE_PX, 1.5, 1.5);
+  }
+}
+
+function drawPlanks(ctx, color, random) {
+  const rows = 5;
+  const plank = TEXTURE_PX / rows;
+  ctx.fillStyle = shade(color, -0.12);
+  ctx.fillRect(0, 0, TEXTURE_PX, TEXTURE_PX);
+
+  for (let row = 0; row < rows; row++) {
+    const y = row * plank;
+    const offset = (row % 2) * TEXTURE_PX * 0.37;
+    for (let piece = -1; piece < 3; piece++) {
+      const x = offset + piece * TEXTURE_PX * 0.62;
+      const width = TEXTURE_PX * 0.62 - 2;
+      ctx.fillStyle = shade(color, (random() - 0.5) * 0.09);
+      ctx.fillRect(x, y + 1, width, plank - 2);
+
+      // sloje
+      for (let g = 0; g < 26; g++) {
+        ctx.strokeStyle = shade(color, -0.05 - random() * 0.07);
+        ctx.lineWidth = 0.6 + random();
+        ctx.beginPath();
+        const gy = y + 2 + random() * (plank - 4);
+        ctx.moveTo(x, gy);
+        ctx.bezierCurveTo(
+          x + width * 0.3, gy + (random() - 0.5) * 5,
+          x + width * 0.7, gy + (random() - 0.5) * 5,
+          x + width, gy
+        );
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function drawTiles(ctx, color, random) {
+  const grid = 4;
+  const size = TEXTURE_PX / grid;
+  ctx.fillStyle = shade(color, -0.22);
+  ctx.fillRect(0, 0, TEXTURE_PX, TEXTURE_PX);
+  const grout = Math.max(2, TEXTURE_PX * 0.006);
+  for (let row = 0; row < grid; row++) {
+    for (let col = 0; col < grid; col++) {
+      ctx.fillStyle = shade(color, (random() - 0.5) * 0.05);
+      ctx.fillRect(
+        col * size + grout / 2, row * size + grout / 2,
+        size - grout, size - grout
+      );
+    }
+  }
+}
+
+function makePatternTexture(THREE, pattern, color, seed) {
+  const key = `${pattern}|${color}`;
+  if (textureCache.has(key)) return textureCache.get(key);
+  if (pattern === 'plain') { textureCache.set(key, null); return null; }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = TEXTURE_PX;
+  const ctx = canvas.getContext('2d');
+  const random = seeded(seed);
+
+  if (pattern === 'planks') drawPlanks(ctx, color, random);
+  else if (pattern === 'tiles') drawTiles(ctx, color, random);
+  else if (pattern === 'screed') drawScreed(ctx, color, random);
+  else drawPlaster(ctx, color, random);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  textureCache.set(key, texture);
+  return texture;
+}
+
+function buildFinishMaterial(finish, seed) {
+  const pattern = finish.pattern || 'plain';
+  const color = finish.color || '#cccccc';
+  const opacity = finish.opacity === undefined ? 1 : finish.opacity;
+
+  const parameters = {
+    color: new THREE.Color(color),
+    roughness: finish.roughness === undefined ? 0.85 : finish.roughness,
+    metalness: finish.metalness === undefined ? 0.0 : finish.metalness,
+    side: THREE.DoubleSide,
+  };
+
+  if (opacity < 1) {
+    parameters.transparent = true;
+    parameters.opacity = opacity;
+    parameters.depthWrite = false;
+  }
+
+  const material = new THREE.MeshStandardMaterial(parameters);
+  const texture = makePatternTexture(THREE, pattern, color, seed);
+  if (texture) {
+    // UV wychodzi z Blendera w metrach, wiec powtarzanie liczy sie wprost
+    // z rozmiaru wzoru: wzor 1,8 m powtarza sie co 1,8 m sceny.
+    const scale = finish.scale_m || 1.0;
+    const repeated = texture.clone();
+    repeated.needsUpdate = true;
+    repeated.wrapS = repeated.wrapT = THREE.RepeatWrapping;
+    repeated.repeat.set(1 / scale, 1 / scale);
+    material.map = repeated;
+    material.color.multiplyScalar(1.0);
+  }
+  return material;
+}
+
+const SURFACE_ROLES = ['frame_window', 'frame_door', 'ceiling', 'floor', 'wall', 'glass', 'leaf'];
+
+/** Rola i pomieszczenie obiektu. Najpierw z danych glTF, w razie czego z nazwy. */
+function describeSurface(node) {
+  const extras = node.userData || {};
+  if (extras.role && SURFACE_ROLES.includes(extras.role)) {
+    return { role: extras.role, roomId: extras.room_id || null };
+  }
+  const name = node.name || '';
+  for (const role of SURFACE_ROLES) {
+    if (!name.startsWith(role + '_')) continue;
+    const rest = name.slice(role.length + 1);
+    return { role, roomId: rest.split('_')[0] || null };
+  }
+  return { role: null, roomId: null };
+}
+
 /* --- Scena ---------------------------------------------------------------- */
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -360,8 +557,14 @@ scene.background = makeSky();
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.02).texture;
 
-const hemi = new THREE.HemisphereLight(0xdfe8f2, 0x50463a, 1.1);
+// Oswietlenie wnetrz bez sciezki odbic. Slonce daje kierunek i cienie,
+// polkula i swiatlo otoczenia zastepuja swiatlo odbite od scian - bez nich
+// pomieszczenie z sufitem jest czarne.
+const hemi = new THREE.HemisphereLight(0xdfe8f2, 0x6a5f4e, 1.8);
 scene.add(hemi);
+
+const ambient = new THREE.AmbientLight(0xf3efe7, 0.55);
+scene.add(ambient);
 
 const sun = new THREE.DirectionalLight(0xfff2dc, 2.2);
 sun.position.set(8, 9, 6);
@@ -451,6 +654,8 @@ let mode = 'orbit';
 let sceneData = null;
 let activeVariant = null;
 const ceilings = [];
+const surfaces = [];
+const materialCache = new Map();
 let canStand = () => true;
 let spawn = { position: new THREE.Vector3(), target: new THREE.Vector3() };
 let orbitHome = { position: new THREE.Vector3(), target: new THREE.Vector3() };
@@ -650,10 +855,17 @@ Promise.all([
     const model = gltf.scene;
     model.traverse((node) => {
       if (node.isMesh) {
-        node.castShadow = true;
-        node.receiveShadow = true;
         if (node.material) node.material.side = THREE.DoubleSide;
-        if (node.name.startsWith('ceiling_')) ceilings.push(node);
+        const { role, roomId } = describeSurface(node);
+
+        // Sufit nie rzuca cienia na wlasne pomieszczenie. W rzeczywistosci
+        // swiatlo odbija sie od scian i podlogi; ten renderer tego nie liczy,
+        // wiec cieniujacy sufit zamienial wnetrze w czarna skrzynke.
+        node.castShadow = role !== 'ceiling' && role !== 'glass';
+        node.receiveShadow = role !== 'glass';
+
+        if (role === 'ceiling') ceilings.push(node);
+        if (role) surfaces.push({ node, role, roomId, fallback: node.material });
       }
     });
     scene.add(model);
@@ -665,6 +877,10 @@ Promise.all([
     el('loader-bar').style.width = '100%';
     loader.classList.add('fading');
     setTimeout(() => { loader.hidden = true; }, 500);
+
+    buildVariantUi(data);
+    const variants = data.variants || [];
+    if (variants.length) applyVariant(variants[0].id);
 
     el('controls').hidden = false;
     setMode('orbit');
@@ -719,6 +935,72 @@ function step(delta) {
   }
 }
 
+/* --- Warianty wykonczenia ---------------------------------------------------
+   Wariant nie jest osobnym modelem. Geometria zostaje ta sama, zmieniaja sie
+   tylko materialy przypisane do rol powierzchni - dzieki temu przelaczenie
+   jest natychmiastowe, plik jeden, a kamera zostaje tam, gdzie byla.       */
+
+function resolveFinish(variant, role, roomId) {
+  let chosen = null;
+  for (const assignment of variant.assignments || []) {
+    if (assignment.role !== role) continue;
+    if (assignment.room_id !== undefined && assignment.room_id !== roomId) continue;
+    chosen = assignment.finish;  // pozniejsze przypisanie wygrywa z wczesniejszym
+  }
+  return chosen;
+}
+
+function materialFor(variantId, finishId) {
+  const key = `${variantId}|${finishId}`;
+  if (materialCache.has(key)) return materialCache.get(key);
+  const finish = (sceneData.finishes || {})[finishId];
+  if (!finish) return null;
+  let seed = 0;
+  for (let i = 0; i < finishId.length; i++) seed = (seed * 31 + finishId.charCodeAt(i)) >>> 0;
+  const material = buildFinishMaterial(finish, seed || 1);
+  materialCache.set(key, material);
+  return material;
+}
+
+function applyVariant(id) {
+  const variant = (sceneData.variants || []).find((v) => v.id === id);
+  if (!variant) return false;
+
+  for (const surface of surfaces) {
+    const finishId = resolveFinish(variant, surface.role, surface.roomId);
+    const material = finishId ? materialFor(id, finishId) : null;
+    surface.node.material = material || surface.fallback;
+  }
+
+  activeVariant = id;
+  for (const button of variantButtons) {
+    button.setAttribute('aria-pressed', String(button.dataset.variant === id));
+  }
+  emit('variantchange', { id, name: variant.name || id });
+  return true;
+}
+
+const variantButtons = [];
+
+function buildVariantUi(data) {
+  const variants = data.variants || [];
+  const bar = el('variants');
+  if (variants.length < 2) { bar.hidden = true; return; }
+
+  bar.innerHTML = '';
+  for (const variant of variants) {
+    const button = document.createElement('button');
+    button.textContent = variant.name || variant.id;
+    button.dataset.variant = variant.id;
+    button.setAttribute('aria-pressed', 'false');
+    if (variant.description) button.title = variant.description;
+    button.addEventListener('click', () => applyVariant(variant.id));
+    bar.appendChild(button);
+    variantButtons.push(button);
+  }
+  bar.hidden = false;
+}
+
 /* --- Publiczne API ----------------------------------------------------------
    Ta sama powierzchnia ma obsluzyc obie sciezki renderowania: dzis three.js,
    jutro Pixel Streaming. Strona wola te metody i nie wie, co jest pod spodem.
@@ -749,14 +1031,11 @@ window.RoomViewer = {
   /** Warianty wykonczenia. Generator ich jeszcze nie tworzy - patrz roadmap M2. */
   listVariants() { return (sceneData && sceneData.variants) || []; },
   setVariant(id) {
-    const variants = this.listVariants();
-    if (!variants.some((v) => v.id === id)) {
-      throw new Error(`Wariant ${id} nie istnieje w tej scenie.`);
-    }
-    activeVariant = id;
-    emit('variantchange', { id });
+    if (!applyVariant(id)) throw new Error(`Wariant ${id} nie istnieje w tej scenie.`);
     return id;
   },
+
+  listFinishes() { return (sceneData && sceneData.finishes) || {}; },
   get activeVariant() { return activeVariant; },
 
   on(event, handler) {

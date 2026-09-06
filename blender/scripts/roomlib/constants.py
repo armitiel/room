@@ -41,6 +41,22 @@ FRAME_WIDTH_M = 0.06
 GLASS_THICKNESS_M = 0.012
 DOOR_LEAF_THICKNESS_M = 0.04
 
+# Role powierzchni. Wykonczenie przypisuje sie do roli, a nie do obiektu,
+# zeby ten sam wariant dzialal na kazdej scenie bez przepisywania nazw.
+SURFACE_ROLES = (
+    "floor",
+    "ceiling",
+    "wall",
+    "frame_window",
+    "frame_door",
+    "glass",
+    "leaf",
+)
+
+# Wzory tekstur, ktore przegladarka umie narysowac proceduralnie.
+# Zadnych plikow zewnetrznych - demo ma dzialac bez sieci.
+FINISH_PATTERNS = ("plain", "plaster", "planks", "tiles", "screed")
+
 # Kontrola powierzchni: pokoj moze podac expected_area_m2 przepisane
 # z dokumentacji. Rozbieznosc miedzy ta liczba a powierzchnia policzona
 # z wielokata jest najtanszym testem, czy rzut przepisano poprawnie.

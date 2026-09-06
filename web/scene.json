@@ -194,7 +194,8 @@
           "width_m": 1.05,
           "sill_m": 0.0,
           "height_m": 2.1,
-          "note": "drzwi wejsciowe, 105/210 z rzutu"
+          "note": "drzwi wejsciowe, 105/210 z rzutu",
+          "leaf": true
         },
         {
           "kind": "door",
@@ -496,5 +497,228 @@
     }
   ],
   "furniture": [],
-  "variants": []
+  "variants": [
+    {
+      "id": "basic",
+      "name": "Basic",
+      "description": "Proste wykonczenie oddawane przez dewelopera: wylewka, szary tynk, biala stolarka.",
+      "assignments": [
+        {
+          "role": "floor",
+          "finish": "screed"
+        },
+        {
+          "role": "wall",
+          "finish": "plaster-grey"
+        },
+        {
+          "role": "ceiling",
+          "finish": "ceiling-white"
+        },
+        {
+          "role": "frame_window",
+          "finish": "frame-white"
+        },
+        {
+          "role": "frame_door",
+          "finish": "frame-white"
+        },
+        {
+          "role": "leaf",
+          "finish": "door-white"
+        },
+        {
+          "role": "glass",
+          "finish": "glass-clear"
+        },
+        {
+          "role": "floor",
+          "room_id": "lazienka-mala",
+          "finish": "tile-basic"
+        },
+        {
+          "role": "floor",
+          "room_id": "lazienka-duza",
+          "finish": "tile-basic"
+        },
+        {
+          "role": "floor",
+          "room_id": "kuchnia",
+          "finish": "tile-basic"
+        },
+        {
+          "role": "floor",
+          "room_id": "wiatrolap",
+          "finish": "tile-basic"
+        },
+        {
+          "role": "floor",
+          "room_id": "kotlownia",
+          "finish": "tile-basic"
+        }
+      ]
+    },
+    {
+      "id": "premium",
+      "name": "Premium",
+      "description": "Deska debowa, cieply tynk w strefie dziennej, antracytowa stolarka, plytka wielkoformatowa w lazienkach.",
+      "assignments": [
+        {
+          "role": "floor",
+          "finish": "oak"
+        },
+        {
+          "role": "wall",
+          "finish": "plaster-white"
+        },
+        {
+          "role": "ceiling",
+          "finish": "ceiling-white"
+        },
+        {
+          "role": "frame_window",
+          "finish": "frame-anthracite"
+        },
+        {
+          "role": "frame_door",
+          "finish": "frame-white"
+        },
+        {
+          "role": "leaf",
+          "finish": "door-walnut"
+        },
+        {
+          "role": "glass",
+          "finish": "glass-clear"
+        },
+        {
+          "role": "wall",
+          "room_id": "salon",
+          "finish": "plaster-clay"
+        },
+        {
+          "role": "floor",
+          "room_id": "lazienka-mala",
+          "finish": "tile-premium"
+        },
+        {
+          "role": "wall",
+          "room_id": "lazienka-mala",
+          "finish": "tile-premium"
+        },
+        {
+          "role": "floor",
+          "room_id": "lazienka-duza",
+          "finish": "tile-premium"
+        },
+        {
+          "role": "wall",
+          "room_id": "lazienka-duza",
+          "finish": "tile-premium"
+        },
+        {
+          "role": "floor",
+          "room_id": "wiatrolap",
+          "finish": "tile-premium"
+        },
+        {
+          "role": "floor",
+          "room_id": "kotlownia",
+          "finish": "tile-premium"
+        }
+      ]
+    }
+  ],
+  "finishes": {
+    "screed": {
+      "name": "Wylewka betonowa",
+      "pattern": "screed",
+      "color": "#b3aea6",
+      "roughness": 0.95
+    },
+    "panel-basic": {
+      "name": "Panel laminowany",
+      "pattern": "planks",
+      "color": "#b7a189",
+      "roughness": 0.7,
+      "scale_m": 1.2
+    },
+    "oak": {
+      "name": "Deska debowa",
+      "pattern": "planks",
+      "color": "#b98a55",
+      "roughness": 0.55,
+      "scale_m": 1.8
+    },
+    "tile-basic": {
+      "name": "Plytka 30x30",
+      "pattern": "tiles",
+      "color": "#d5d3ce",
+      "roughness": 0.35,
+      "scale_m": 0.3
+    },
+    "tile-premium": {
+      "name": "Plytka wielkoformatowa",
+      "pattern": "tiles",
+      "color": "#8d8a84",
+      "roughness": 0.22,
+      "scale_m": 0.9
+    },
+    "plaster-grey": {
+      "name": "Tynk szary",
+      "pattern": "plaster",
+      "color": "#c8c5bf",
+      "roughness": 0.97
+    },
+    "plaster-white": {
+      "name": "Biel",
+      "pattern": "plaster",
+      "color": "#efeeea",
+      "roughness": 0.95
+    },
+    "plaster-clay": {
+      "name": "Cieply piaskowy",
+      "pattern": "plaster",
+      "color": "#ded3c2",
+      "roughness": 0.95
+    },
+    "ceiling-white": {
+      "name": "Sufit bialy",
+      "pattern": "plain",
+      "color": "#f6f5f2",
+      "roughness": 0.98
+    },
+    "frame-white": {
+      "name": "Stolarka biala",
+      "pattern": "plain",
+      "color": "#f0efec",
+      "roughness": 0.4
+    },
+    "frame-anthracite": {
+      "name": "Stolarka antracytowa",
+      "pattern": "plain",
+      "color": "#26292b",
+      "roughness": 0.35
+    },
+    "door-white": {
+      "name": "Drzwi biale",
+      "pattern": "plain",
+      "color": "#e9e7e2",
+      "roughness": 0.45
+    },
+    "door-walnut": {
+      "name": "Drzwi orzech",
+      "pattern": "planks",
+      "color": "#4a3324",
+      "roughness": 0.5,
+      "scale_m": 0.9
+    },
+    "glass-clear": {
+      "name": "Szyba",
+      "pattern": "plain",
+      "color": "#9fbccb",
+      "roughness": 0.05,
+      "opacity": 0.22
+    }
+  }
 }
