@@ -208,6 +208,8 @@ def plan_furniture(
                 "rotation_deg": float(item.get("rotation_deg", 0.0)),
                 "model_path": product.get("model_path"),
                 "dimensions_m": product.get("dimensions_m"),
+                "mount_height_m": product.get("mount_height_m", 0.0),
+                "primitive": product.get("primitive"),
             }
         )
     return items

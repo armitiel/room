@@ -670,11 +670,22 @@ addEventListener('blur', () => keys.clear());
 
 const isTouchOnly = matchMedia('(hover: none) and (pointer: coarse)').matches;
 
+let hintTimer = null;
+
+/** Podpowiedz znika sama po kilku sekundach - w demo dla klienta pasek
+ *  z klawiszami przeslania to, co ma byc widoczne. Wraca przy zmianie trybu
+ *  i przy kolejnej interakcji. */
 function setHint(html) {
   const hint = el('hint');
+  if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
   if (!html) { hint.hidden = true; return; }
   hint.innerHTML = html;
   hint.hidden = false;
+  hint.style.opacity = '1';
+  hintTimer = setTimeout(() => {
+    hint.style.opacity = '0';
+    setTimeout(() => { hint.hidden = true; }, 400);
+  }, 6000);
 }
 
 function setMode(next) {

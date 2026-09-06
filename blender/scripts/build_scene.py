@@ -36,6 +36,9 @@ from roomlib import build_plan, scene_io, validate  # noqa: E402
 from roomlib.constants import DEFAULT_WALL_THICKNESS_M  # noqa: E402
 
 FLOOR_THICKNESS_M = 0.15
+
+# Ponizej tej grubosci os nie decyduje o skali modelu (lustra, telewizory, dywany).
+THIN_AXIS_M = 0.12
 CEILING_THICKNESS_M = 0.12
 PLACEHOLDER_PREFIX = "PLACEHOLDER_"
 
@@ -406,6 +409,68 @@ def import_model(bpy, path):
     return [obj for obj in bpy.data.objects if obj not in before]
 
 
+def world_bounds(objects):
+    """Gabaryt zbioru obiektow w ukladzie sceny."""
+    lo = [float("inf")] * 3
+    hi = [float("-inf")] * 3
+    for obj in objects:
+        if obj.type != "MESH" or obj.data is None:
+            continue
+        for vertex in obj.data.vertices:
+            world = obj.matrix_world @ vertex.co
+            for axis in range(3):
+                lo[axis] = min(lo[axis], world[axis])
+                hi[axis] = max(hi[axis], world[axis])
+    if lo[0] == float("inf"):
+        return None
+    return lo, hi
+
+
+def fit_to_catalogue(bpy, holder, created, dimensions, mount_height_m=0.0):
+    """Dopasowuje wczytany model do gabarytow z katalogu.
+
+    Modele z bibliotek nie sa w skali rzeczywistej - w paczkach growych lozko
+    dwuosobowe potrafi miec metr dlugosci. Katalog jest zrodlem prawdy o
+    wymiarach, wiec model skalujemy do niego, zamiast wierzyc plikowi.
+
+    Skala jest jednolita i liczona z RZUTU (szerokosc i glebokosc), nie z
+    wysokosci: rozciaganie osobno w kazdej osi deformuje mebel, a wysokosc
+    modelu czesto pomija zaglowek czy oparcie. Bierzemy mniejszy ze wspolczynnikow,
+    zeby mebel nigdy nie wyszedl poza zadeklarowany gabaryt - inaczej kontrola
+    przenikania mebli w walidatorze klamalaby.
+
+    Po przeskalowaniu model zostaje wysrodkowany w rzucie i postawiony na
+    podlodze (albo na zadanej wysokosci montazu, dla rzeczy wieszanych).
+    """
+    bounds = world_bounds(created)
+    if bounds is None:
+        return 1.0
+    lo, hi = bounds
+    size = [hi[axis] - lo[axis] for axis in range(3)]
+
+    target_x = float(dimensions.get("x", size[0]) or size[0])
+    target_y = float(dimensions.get("y", size[1]) or size[1])
+
+    # Osie cienkie pomijamy. Lustro ma w katalogu 4 cm glebokosci, a model
+    # 14 cm razem z ramka - liczenie skali z tej osi zmniejszyloby lustro
+    # do jednej trzeciej. O skali decyduje wymiar, ktory realnie ustawiamy.
+    ratios = []
+    for axis, target in ((0, target_x), (1, target_y)):
+        if size[axis] > 1e-6 and target >= THIN_AXIS_M:
+            ratios.append(target / size[axis])
+    scale = min(ratios) if ratios else 1.0
+
+    for obj in created:
+        if obj.parent is holder:
+            obj.scale = (obj.scale[0] * scale, obj.scale[1] * scale, obj.scale[2] * scale)
+            obj.location = (
+                (obj.location[0] - (lo[0] + hi[0]) / 2.0) * scale,
+                (obj.location[1] - (lo[1] + hi[1]) / 2.0) * scale,
+                (obj.location[2] - lo[2]) * scale + mount_height_m,
+            )
+    return scale
+
+
 def build_furniture(bpy, plan, root, parent_collection, args, report_lines):
     import math
 
@@ -437,7 +502,19 @@ def build_furniture(bpy, plan, root, parent_collection, args, report_lines):
                 collection.objects.link(obj)
                 if obj.parent is None:
                     obj.parent = empty
+                    obj.matrix_parent_inverse.identity()
             holder = empty
+
+            bpy.context.view_layer.update()
+            applied = fit_to_catalogue(
+                bpy, empty, created, item["dimensions_m"] or {}, item.get("mount_height_m", 0.0) or 0.0
+            )
+            if abs(applied - 1.0) > 0.02:
+                report_lines.append(
+                    "Model {!r} przeskalowany x{:.2f} do gabarytow z katalogu.".format(
+                        item["product_id"], applied
+                    )
+                )
         elif args.placeholders:
             dimensions = item["dimensions_m"] or {}
             size = (

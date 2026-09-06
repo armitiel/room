@@ -496,7 +496,503 @@
       "review_notes": "Wielokat daje 10,18 m2 wobec 9,55 m2 w dokumentacji. Roznica 0,63 m2 sugeruje wneke lub zabudowe, ktorej nie widac na zrzucie rzutu. Do potwierdzenia."
     }
   ],
-  "furniture": [],
+  "furniture": [
+    {
+      "id": "salon-dywan",
+      "product_id": "dywan-prost",
+      "room_id": "salon",
+      "position_m": [
+        2.3,
+        6.3,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "salon-sofa",
+      "product_id": "sofa-3os",
+      "room_id": "salon",
+      "position_m": [
+        0.75,
+        6.3,
+        0.0
+      ],
+      "rotation_deg": 90.0
+    },
+    {
+      "id": "salon-fotel",
+      "product_id": "fotel",
+      "room_id": "salon",
+      "position_m": [
+        2.3,
+        7.3,
+        0.0
+      ],
+      "rotation_deg": 180.0
+    },
+    {
+      "id": "salon-stolik",
+      "product_id": "stolik-kawowy",
+      "room_id": "salon",
+      "position_m": [
+        2.3,
+        6.3,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "salon-rtv",
+      "product_id": "szafka-rtv",
+      "room_id": "salon",
+      "position_m": [
+        4.05,
+        6.1,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "salon-tv",
+      "product_id": "telewizor",
+      "room_id": "salon",
+      "position_m": [
+        4.35,
+        6.1,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "salon-regal",
+      "product_id": "regal",
+      "room_id": "salon",
+      "position_m": [
+        4.3,
+        7.35,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "salon-roslina",
+      "product_id": "roslina",
+      "room_id": "salon",
+      "position_m": [
+        3.3,
+        7.5,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "salon-lampa",
+      "product_id": "lampa-podl",
+      "room_id": "salon",
+      "position_m": [
+        0.45,
+        4.8,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "jadalnia-stol",
+      "product_id": "stol-jadalny",
+      "room_id": "salon",
+      "position_m": [
+        2.3,
+        3.75,
+        0.0
+      ],
+      "rotation_deg": 90.0
+    },
+    {
+      "id": "jadalnia-krz-1",
+      "product_id": "krzeslo",
+      "room_id": "salon",
+      "position_m": [
+        1.35,
+        3.35,
+        0.0
+      ],
+      "rotation_deg": 90.0
+    },
+    {
+      "id": "jadalnia-krz-2",
+      "product_id": "krzeslo",
+      "room_id": "salon",
+      "position_m": [
+        1.35,
+        4.15,
+        0.0
+      ],
+      "rotation_deg": 90.0
+    },
+    {
+      "id": "jadalnia-krz-3",
+      "product_id": "krzeslo",
+      "room_id": "salon",
+      "position_m": [
+        3.25,
+        3.35,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "jadalnia-krz-4",
+      "product_id": "krzeslo",
+      "room_id": "salon",
+      "position_m": [
+        3.25,
+        4.15,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "kuchnia-zlew",
+      "product_id": "zlewozmywak",
+      "room_id": "kuchnia",
+      "position_m": [
+        0.45,
+        0.35,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "kuchnia-kuch",
+      "product_id": "kuchenka",
+      "room_id": "kuchnia",
+      "position_m": [
+        1.15,
+        0.35,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "kuchnia-szd-1",
+      "product_id": "szafka-dolna",
+      "room_id": "kuchnia",
+      "position_m": [
+        1.8,
+        0.35,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "kuchnia-szd-2",
+      "product_id": "szafka-dolna",
+      "room_id": "kuchnia",
+      "position_m": [
+        2.45,
+        0.35,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "kuchnia-okap",
+      "product_id": "okap",
+      "room_id": "kuchnia",
+      "position_m": [
+        1.15,
+        0.35,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "kuchnia-szg-1",
+      "product_id": "szafka-gorna",
+      "room_id": "kuchnia",
+      "position_m": [
+        1.8,
+        0.28,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "kuchnia-szg-2",
+      "product_id": "szafka-gorna",
+      "room_id": "kuchnia",
+      "position_m": [
+        2.45,
+        0.28,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "kuchnia-lodowka",
+      "product_id": "lodowka",
+      "room_id": "kuchnia",
+      "position_m": [
+        2.6,
+        2.2,
+        0.0
+      ],
+      "rotation_deg": 180.0
+    },
+    {
+      "id": "kotlownia-pralka",
+      "product_id": "pralka",
+      "room_id": "kotlownia",
+      "position_m": [
+        3.55,
+        0.4,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "wiatrolap-wieszak",
+      "product_id": "wieszak",
+      "room_id": "wiatrolap",
+      "position_m": [
+        5.05,
+        2.1,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "lazienka-m-umywalka",
+      "product_id": "umywalka",
+      "room_id": "lazienka-mala",
+      "position_m": [
+        7.05,
+        0.32,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "lazienka-m-lustro",
+      "product_id": "lustro",
+      "room_id": "lazienka-mala",
+      "position_m": [
+        7.05,
+        0.1,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "lazienka-m-wc",
+      "product_id": "wc",
+      "room_id": "lazienka-mala",
+      "position_m": [
+        7.7,
+        1.7,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "lazienka-d-wanna",
+      "product_id": "wanna",
+      "room_id": "lazienka-duza",
+      "position_m": [
+        10.25,
+        4.36,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "lazienka-d-umywalka",
+      "product_id": "umywalka",
+      "room_id": "lazienka-duza",
+      "position_m": [
+        9.75,
+        3.32,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "lazienka-d-wc",
+      "product_id": "wc",
+      "room_id": "lazienka-duza",
+      "position_m": [
+        10.9,
+        3.42,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-1-lozko",
+      "product_id": "lozko-2os",
+      "room_id": "pokoj-srodek",
+      "position_m": [
+        6.35,
+        6.55,
+        0.0
+      ],
+      "rotation_deg": 180.0
+    },
+    {
+      "id": "sypialnia-1-noc-1",
+      "product_id": "szafka-nocna",
+      "room_id": "pokoj-srodek",
+      "position_m": [
+        5.2,
+        7.45,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-1-noc-2",
+      "product_id": "szafka-nocna",
+      "room_id": "pokoj-srodek",
+      "position_m": [
+        7.5,
+        7.45,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-1-szafa",
+      "product_id": "szafa",
+      "room_id": "pokoj-srodek",
+      "position_m": [
+        7.55,
+        5.1,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "sypialnia-1-dywan",
+      "product_id": "dywan-okr",
+      "room_id": "pokoj-srodek",
+      "position_m": [
+        5.7,
+        4.85,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-2-lozko",
+      "product_id": "lozko-1os",
+      "room_id": "pokoj-polnoc",
+      "position_m": [
+        9.05,
+        6.15,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-2-noc",
+      "product_id": "szafka-nocna",
+      "room_id": "pokoj-polnoc",
+      "position_m": [
+        9.05,
+        7.5,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-2-biurko",
+      "product_id": "biurko",
+      "room_id": "pokoj-polnoc",
+      "position_m": [
+        11.35,
+        6.6,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "sypialnia-2-krzeslo",
+      "product_id": "krzeslo",
+      "room_id": "pokoj-polnoc",
+      "position_m": [
+        10.75,
+        6.6,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "sypialnia-2-szafa",
+      "product_id": "szafa",
+      "room_id": "pokoj-polnoc",
+      "position_m": [
+        10.6,
+        5.25,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-3-lozko",
+      "product_id": "lozko-1os",
+      "room_id": "pokoj-poludnie",
+      "position_m": [
+        9.05,
+        1.36,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-3-noc",
+      "product_id": "szafka-nocna",
+      "room_id": "pokoj-poludnie",
+      "position_m": [
+        9.05,
+        2.64,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-3-regal",
+      "product_id": "regal",
+      "room_id": "pokoj-poludnie",
+      "position_m": [
+        11.45,
+        1.6,
+        0.0
+      ],
+      "rotation_deg": -90.0
+    },
+    {
+      "id": "sypialnia-3-dywan",
+      "product_id": "dywan-okr",
+      "room_id": "pokoj-poludnie",
+      "position_m": [
+        10.3,
+        1.3,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    },
+    {
+      "id": "lazienka-d-lustro",
+      "product_id": "lustro",
+      "room_id": "lazienka-duza",
+      "position_m": [
+        9.75,
+        3.08,
+        0.0
+      ],
+      "rotation_deg": 0.0
+    }
+  ],
   "variants": [
     {
       "id": "basic",

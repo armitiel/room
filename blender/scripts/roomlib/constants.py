@@ -63,3 +63,6 @@ FINISH_PATTERNS = ("plain", "plaster", "planks", "tiles", "screed")
 AREA_WARNING_RATIO = 0.01   # 1 % - ostrzezenie, warto spojrzec
 AREA_ERROR_RATIO = 0.03     # 3 % - blad, rzut przepisano zle
 AREA_ABSOLUTE_FLOOR_M2 = 0.05  # przy malych pomieszczeniach procenty klamia
+
+# Dywany i wycieraczki lezą POD meblami - ich rzut ma prawo sie pokrywac.
+FLOOR_COVERING_MAX_HEIGHT_M = 0.05

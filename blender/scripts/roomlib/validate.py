@@ -18,6 +18,7 @@ from . import geometry as geo
 from . import scene_io
 from .constants import (
     AREA_ABSOLUTE_FLOOR_M2,
+    FLOOR_COVERING_MAX_HEIGHT_M,
     FINISH_PATTERNS,
     SURFACE_ROLES,
     AREA_ERROR_RATIO,
@@ -627,11 +628,34 @@ def _check_furniture(
                     (position[0], position[1]), float(size_x), float(size_y), float(rotation)
                 )
 
+        height = 0.0
+        if isinstance(dimensions, dict) and _is_number(dimensions.get("z")):
+            height = float(dimensions["z"])
+        base = float(position[2]) + float((product or {}).get("mount_height_m", 0.0) or 0.0)
+
+        if (
+            footprint is not None
+            and isinstance(room_id, str)
+            and room_id in geometry_by_room
+        ):
+            polygon = geometry_by_room[room_id]["polygon"]
+            outside = [c for c in footprint if not geo.point_in_polygon(polygon, c)]
+            if outside:
+                report.warning(
+                    "furniture.sticks_through_wall",
+                    path + ".position_m",
+                    "Mebel wystaje poza obrys pomieszczenia {!r} ({} z 4 naroznikow rzutu). "
+                    "Przesun go albo popraw gabaryty w katalogu.".format(room_id, len(outside)),
+                )
+
         if item_id:
             placed[item_id] = {
                 "path": path,
                 "footprint": footprint,
                 "room_id": room_id if isinstance(room_id, str) else None,
+                "z_from": base,
+                "z_to": base + height,
+                "height": height,
             }
 
     ids = list(placed.keys())
@@ -642,11 +666,21 @@ def _check_furniture(
                 continue
             if first["room_id"] != second["room_id"]:
                 continue
+
+            # Dywan lezy pod meblami - to nie kolizja, tylko sposob uzycia.
+            if min(first["height"], second["height"]) <= FLOOR_COVERING_MAX_HEIGHT_M:
+                continue
+
+            # Rzuty moga sie pokrywac, jesli przedmioty mijaja sie w pionie:
+            # okap nad kuchenka, lustro nad umywalka, telewizor nad szafka.
+            if first["z_to"] <= second["z_from"] + EPS_M or second["z_to"] <= first["z_from"] + EPS_M:
+                continue
+
             if geo.rects_overlap(first["footprint"], second["footprint"]):
                 report.warning(
                     "furniture.overlap",
                     second["path"],
-                    "Rzuty mebli {!r} i {!r} nachodza na siebie.".format(ids[i], ids[j]),
+                    "Meble {!r} i {!r} zajmuja te sama przestrzen.".format(ids[i], ids[j]),
                 )
 
     return placed
