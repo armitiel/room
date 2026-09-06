@@ -1,0 +1,18 @@
+{
+  "schema_version": "0.1",
+  "scene_id": "synthetic-room-001",
+  "units": "m",
+  "coordinate_system": "right_handed_z_up",
+  "status": "example_only",
+  "sources": [],
+  "rooms": [{
+    "id": "living-room",
+    "polygon_xy_m": [[0,0],[5,0],[5,4],[0,4]],
+    "height_m": 2.7,
+    "openings": [{"kind":"door","wall_index":0,"offset_m":0.5,"width_m":0.9,"sill_m":0,"height_m":2.1}],
+    "evidence": "Synthetic example, not extracted from a real floor plan.",
+    "review_notes": "Do not treat as approved customer geometry."
+  }],
+  "furniture": [],
+  "variants": []
+}

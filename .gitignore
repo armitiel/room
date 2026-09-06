@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+work/*
+!work/.gitkeep
+__pycache__/
+.venv/
+node_modules/
+dist/
+unreal/**/Binaries/
+unreal/**/DerivedDataCache/
+unreal/**/Intermediate/
+unreal/**/Saved/
+datasets/sample/input/*
+!datasets/sample/input/README.md
+*.blend1
