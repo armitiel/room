@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1",
+  "scene_id": "demo-room-001",
+  "units": "m",
+  "coordinate_system": "right_handed_z_up",
+  "status": "example_only",
+  "sources": [
+    {
+      "kind": "synthetic",
+      "note": "Wymiary wymyślone na potrzeby demo przeglądarki. To nie jest żaden rzeczywisty lokal."
+    }
+  ],
+  "rooms": [
+    {
+      "id": "salon",
+      "polygon_xy_m": [[0, 0], [6, 0], [6, 3], [3, 3], [3, 5], [0, 5]],
+      "height_m": 2.7,
+      "openings": [
+        {"kind": "door", "wall_index": 0, "offset_m": 0.6, "width_m": 0.9, "sill_m": 0, "height_m": 2.1},
+        {"kind": "window", "wall_index": 1, "offset_m": 0.8, "width_m": 1.4, "sill_m": 0.9, "height_m": 1.4},
+        {"kind": "window", "wall_index": 4, "offset_m": 0.8, "width_m": 1.4, "sill_m": 0.9, "height_m": 1.4},
+        {"kind": "window", "wall_index": 5, "offset_m": 1.5, "width_m": 1.6, "sill_m": 0.9, "height_m": 1.4}
+      ],
+      "evidence": "Geometria syntetyczna, nie pochodzi z żadnego rzutu.",
+      "review_notes": "Scena demonstracyjna. Nie traktować jako zatwierdzonej geometrii klienta."
+    }
+  ],
+  "furniture": [],
+  "variants": []
+}

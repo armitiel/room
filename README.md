@@ -4,7 +4,7 @@ Platforma B2B do interaktywnych wizualizacji wnętrz nieruchomości w przegląda
 
 ## Cel i status
 Zamienić rzut i zdjęcia lokalu w scenę o sprawdzonych wymiarach, umeblowaną rzeczywistymi produktami, a następnie udostępnić spacer i warianty aranżacji przez stronę internetową.
-Stan: działa warstwa danych i generator geometrii. Scene.json ma walidator, a zatwierdzona scena buduje się w Blenderze i eksportuje do FBX/glTF. Nie ma jeszcze modelu AI, katalogu produktów, aplikacji Unreal ani uruchomionego streamingu.
+Stan: działa warstwa danych, generator geometrii i spacer w przeglądarce. Scene.json ma walidator, zatwierdzona scena buduje się w Blenderze, eksportuje do FBX/glTF i da się po niej chodzić na stronie — bez serwera GPU i bez streamingu. Nie ma jeszcze modelu AI, katalogu produktów, wariantów wykończenia ani aplikacji Unreal.
 
 ## Cele krok po kroku
 1. Pozyskać rzut z wymiarami, wysokość pomieszczeń i zdjęcia jednego lokalu.
@@ -33,8 +33,14 @@ Poza MVP: płatności, koszyk, wieloklientowy panel, automatyczny cold outreach,
 ## Architektura i przepływ
 Rzut + zdjęcia → backend/analiza AI → kandydat scene.json → walidacja operatora
 → Blender/Python + katalog modeli → plik .blend + eksport geometrii
-→ Unreal (import, światło, kolizje, warianty) → spakowana aplikacja na GPU
-→ Pixel Streaming/WebRTC → przeglądarka.
+→ **A. glTF → three.js → przeglądarka** (droga na dziś: bez GPU, bez streamingu)
+→ **B. Unreal (import, światło, kolizje, warianty) → aplikacja na GPU
+→ Pixel Streaming/WebRTC → przeglądarka** (droga docelowa, po pilocie)
+
+Obie ścieżki wychodzą z tego samego zatwierdzonego scene.json i mają dzielić
+to samo API wariantów po stronie strony. Kolejność jest świadoma: droga A
+pozwala sprawdzić przekaz sprzedażowy i zebrać rzuty od deweloperów, zanim
+wydamy pierwszą złotówkę na GPU.
 
 Strona przesyła sterowanie i identyfikator wariantu do działającej aplikacji. Backend obsługuje zadania przygotowania sceny i stan sesji. Model AI nie tworzy bezpośrednio binarnych .uasset i nie wykonuje dowolnego kodu w aplikacji klienta.
 Blender automatyzuje przygotowanie geometrii; Unreal renderuje scenę. Odtwarzanie filmu AI nie zastępuje spójnej, interaktywnej geometrii.
@@ -42,7 +48,7 @@ Blender automatyzuje przygotowanie geometrii; Unreal renderuje scenę. Odtwarzan
 ## Struktura
 - blender/scripts/ — walidator, generator geometrii i eksporter; rdzen `roomlib` liczy wymiary bez Blendera i ma testy jednostkowe.
 - unreal/ — miejsce na rzeczywisty projekt utworzony w edytorze.
-- web/ — frontend oferty, streamingu i wyboru wariantów.
+- web/ — przeglądarka sceny w three.js: spacer i widok makiety, kolizje liczone z obrysu w scene.json; wersja `standalone.html` działa offline z dysku.
 - backend/ — analiza wejścia, zadania, walidacja i sesje.
 - catalog/ — indeks produktów i metadane praw do modeli.
 - datasets/sample/ — syntetyczny przykład kontraktu, miejsce na wejście i zatwierdzone dane.
@@ -87,7 +93,11 @@ Testy rdzenia (bez Blendera):
 
     python3 -m unittest discover -s blender/scripts/tests -t blender/scripts
 
-Szczegóły i ograniczenia: blender/scripts/README.md.
+Podgląd tego, co już działa, bez niczego do instalowania:
+
+    otwórz web/standalone.html dwuklikiem
+
+Szczegóły i ograniczenia: blender/scripts/README.md oraz web/README.md.
 
 ## Dokumenty
 - docs/architecture.md — kontrakty i odpowiedzialności

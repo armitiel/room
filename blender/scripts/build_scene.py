@@ -36,7 +36,18 @@ from roomlib import build_plan, scene_io, validate  # noqa: E402
 from roomlib.constants import DEFAULT_WALL_THICKNESS_M  # noqa: E402
 
 FLOOR_THICKNESS_M = 0.15
+CEILING_THICKNESS_M = 0.12
 PLACEHOLDER_PREFIX = "PLACEHOLDER_"
+
+# Materialy startowe. To nie jest projekt wnetrza - to neutralna baza,
+# zeby eksport niosl jakikolwiek wyglad zamiast domyslnej szarosci.
+# Warianty wykonczenia podmienia te wartosci na etapie M2.
+BASE_MATERIALS = {
+    "floor": {"color": (0.42, 0.31, 0.21, 1.0), "roughness": 0.65, "metallic": 0.0},
+    "wall": {"color": (0.87, 0.86, 0.83, 1.0), "roughness": 0.90, "metallic": 0.0},
+    "ceiling": {"color": (0.95, 0.95, 0.94, 1.0), "roughness": 0.95, "metallic": 0.0},
+    "placeholder": {"color": (0.85, 0.25, 0.30, 1.0), "roughness": 0.60, "metallic": 0.0},
+}
 
 
 def parse_args(argv=None):
@@ -75,6 +86,11 @@ def parse_args(argv=None):
         "--placeholders",
         action="store_true",
         help="Zamiast brakujacych modeli wstaw oznaczone bryly zastepcze.",
+    )
+    parser.add_argument(
+        "--ceiling",
+        action="store_true",
+        help="Dodaj sufit. Potrzebny do spaceru wewnatrz; bez niego widac niebo.",
     )
     parser.add_argument(
         "--plan-only", action="store_true", help="Zapisz plan JSON i zakoncz bez budowania."
@@ -139,6 +155,31 @@ def ensure_collection(bpy, name, parent=None):
     return collection
 
 
+def get_material(bpy, key):
+    """Material bazowy tworzony raz i wspoldzielony przez obiekty tej samej roli."""
+    name = "base_" + key
+    existing = bpy.data.materials.get(name)
+    if existing is not None:
+        return existing
+
+    spec = BASE_MATERIALS[key]
+    material = bpy.data.materials.new(name)
+    material.use_nodes = True
+    principled = material.node_tree.nodes.get("Principled BSDF")
+    if principled is not None:
+        principled.inputs["Base Color"].default_value = spec["color"]
+        principled.inputs["Roughness"].default_value = spec["roughness"]
+        if "Metallic" in principled.inputs:
+            principled.inputs["Metallic"].default_value = spec["metallic"]
+    material.diffuse_color = spec["color"]
+    return material
+
+
+def assign_material(bpy, obj, key):
+    obj.data.materials.clear()
+    obj.data.materials.append(get_material(bpy, key))
+
+
 def make_prism(bpy, name, base_xy, z_bottom, z_top, collection):
     """Bryla o pionowych scianach na podstawie wielokata base_xy."""
     import bmesh
@@ -195,7 +236,7 @@ def apply_boolean(bpy, target, cutter):
     bpy.ops.object.modifier_apply(modifier=modifier.name)
 
 
-def build_room(bpy, room_plan, parent_collection, report_lines):
+def build_room(bpy, room_plan, parent_collection, report_lines, with_ceiling=False):
     room_id = room_plan["room_id"] or "room"
     room_collection = ensure_collection(bpy, "room_" + room_id, parent_collection)
 
@@ -209,6 +250,21 @@ def build_room(bpy, room_plan, parent_collection, report_lines):
     )
     floor["room_id"] = room_id
     floor["role"] = "floor"
+    assign_material(bpy, floor, "floor")
+
+    if with_ceiling:
+        height = room_plan["height_m"]
+        ceiling = make_prism(
+            bpy,
+            "ceiling_" + room_id,
+            room_plan["polygon"],
+            height,
+            height + CEILING_THICKNESS_M,
+            room_collection,
+        )
+        ceiling["room_id"] = room_id
+        ceiling["role"] = "ceiling"
+        assign_material(bpy, ceiling, "ceiling")
 
     cutters_collection = ensure_collection(bpy, "cutters_" + room_id, room_collection)
     cutters = {}
@@ -235,6 +291,7 @@ def build_room(bpy, room_plan, parent_collection, report_lines):
         wall["room_id"] = room_id
         wall["wall_index"] = wall_plan["source_wall_index"]
         wall["role"] = "wall"
+        assign_material(bpy, wall, "wall")
 
         for cutter in cutters.get(wall_plan["index"], []):
             apply_boolean(bpy, wall, cutter)
@@ -319,6 +376,7 @@ def build_furniture(bpy, plan, root, parent_collection, args, report_lines):
                 float(dimensions.get("z", 0.5)),
             )
             holder = make_box(bpy, PLACEHOLDER_PREFIX + name, (0.0, 0.0, 0.0), size, 0.0, collection)
+            assign_material(bpy, holder, "placeholder")
             lift = size[2] / 2.0
             report_lines.append(
                 "Brak modelu dla {!r} - wstawiono bryle zastepcza. Nie pokazuj tego klientowi.".format(
@@ -380,7 +438,7 @@ def main() -> int:
     rooms_collection = ensure_collection(bpy, "rooms", root_collection)
 
     for room_plan in plan["rooms"]:
-        build_room(bpy, room_plan, rooms_collection, report_lines)
+        build_room(bpy, room_plan, rooms_collection, report_lines, args.ceiling)
 
     build_furniture(bpy, plan, root, root_collection, args, report_lines)
 

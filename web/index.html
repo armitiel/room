@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Room — spacer po lokalu</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #14161a;
+    --panel: rgba(20, 22, 26, 0.82);
+    --line: rgba(255, 255, 255, 0.14);
+    --text: #f2f3f5;
+    --muted: #a3a8b2;
+    --accent: #c8a26a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  #stage { position: fixed; inset: 0; }
+  canvas { display: block; }
+
+  .overlay {
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    background: radial-gradient(120% 120% at 50% 40%, #1e2128 0%, #0f1114 100%);
+    z-index: 20;
+    transition: opacity .5s ease;
+  }
+  .overlay[hidden] { display: none; }
+  .overlay.fading { opacity: 0; pointer-events: none; }
+  .card { max-width: 30rem; padding: 0 1.5rem; text-align: center; }
+  .card h1 { margin: 0 0 .35rem; font-size: 1.35rem; font-weight: 600; letter-spacing: -.01em; }
+  .card p { margin: 0 0 1.25rem; color: var(--muted); }
+  .bar { height: 3px; width: 14rem; margin: 0 auto; background: rgba(255,255,255,.12); border-radius: 2px; overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0%; background: var(--accent); transition: width .2s ease; }
+  .err { color: #ff9a8a; }
+  .err code { display: block; margin-top: .75rem; padding: .6rem .7rem; background: rgba(0,0,0,.35); border-radius: 6px; font-size: 12px; color: var(--muted); word-break: break-all; }
+
+  .hud {
+    position: fixed; z-index: 10;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  #info { left: 1rem; top: 1rem; padding: .7rem .85rem; max-width: 15rem; }
+  #info .name { font-weight: 600; }
+  #info .meta { color: var(--muted); font-size: 12px; margin-top: .15rem; }
+  #info .warn { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--line); color: #e7c07a; font-size: 11.5px; }
+
+  #controls { left: 50%; transform: translateX(-50%); bottom: 1rem; padding: .4rem; display: flex; gap: .25rem; }
+  button {
+    appearance: none; border: 0; border-radius: 7px;
+    padding: .5rem .85rem;
+    background: transparent; color: var(--muted);
+    font: inherit; font-size: 13px; cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  button:hover { background: rgba(255,255,255,.07); color: var(--text); }
+  button[aria-pressed="true"] { background: rgba(200,162,106,.16); color: var(--accent); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  #hint {
+    position: fixed; z-index: 10; left: 50%; transform: translateX(-50%);
+    bottom: 4.25rem; padding: .45rem .8rem;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    color: var(--muted); font-size: 12.5px; text-align: center;
+    transition: opacity .3s ease;
+  }
+  #hint[hidden] { display: none; }
+  kbd {
+    display: inline-block; padding: .05rem .3rem; margin: 0 .05rem;
+    border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px;
+    font: inherit; font-size: 11px; color: var(--text);
+  }
+  @media (max-width: 30rem) {
+    #info { max-width: calc(100vw - 2rem); }
+    button { padding: .5rem .6rem; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+
+<div id="info" class="hud" hidden>
+  <div class="name" id="scene-name">—</div>
+  <div class="meta" id="scene-meta"></div>
+  <div class="warn" id="scene-warn" hidden></div>
+</div>
+
+<div id="hint" hidden></div>
+
+<div id="controls" class="hud" hidden>
+  <button id="mode-walk" aria-pressed="false">Spacer</button>
+  <button id="mode-orbit" aria-pressed="true">Rzut</button>
+  <button id="reset">Widok od nowa</button>
+</div>
+
+<div class="overlay" id="loader">
+  <div class="card">
+    <h1>Room</h1>
+    <p id="loader-text">Wczytywanie sceny…</p>
+    <div class="bar"><span id="loader-bar"></span></div>
+  </div>
+</div>
+
+<div class="overlay" id="failure" hidden>
+  <div class="card">
+    <h1 class="err">Nie udało się wczytać sceny</h1>
+    <p id="failure-text">Spróbuj odświeżyć stronę.</p>
+    <code id="failure-detail"></code>
+  </div>
+</div>
+
+<script>
+// Modul ES moze w ogole sie nie uruchomic - zablokowany plik, stara przegladarka,
+// zerwane polaczenie. Bez tego czujnika uzytkownik patrzylby w nieskonczony pasek.
+window.__roomReady = false;
+window.__roomFail = function (message, detail) {
+  var loader = document.getElementById('loader');
+  var failure = document.getElementById('failure');
+  if (loader) loader.hidden = true;
+  if (!failure) return;
+  failure.hidden = false;
+  document.getElementById('failure-text').textContent = message;
+  document.getElementById('failure-detail').textContent = detail || '';
+};
+window.addEventListener('error', function (event) {
+  if (window.__roomReady) return;
+  window.__roomFail('Skrypt sceny nie wystartował.', String(event.message || event.type));
+}, true);
+setTimeout(function () {
+  if (window.__roomReady) return;
+  window.__roomFail(
+    'Scena nie wczytała się w rozsądnym czasie. Sprawdź połączenie albo otwórz stronę przez serwer, a nie prosto z dysku.',
+    'przekroczono 20 s'
+  );
+}, 20000);
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.min.js",
+    "three/addons/": "./vendor/three/addons/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// Wersja osadzona (standalone.html) podstawia te dwie wartosci jako
+// data: URI i obiekt, dzieki czemu plik dziala bez serwera.
+const MODEL_URL = window.ROOM_MODEL_URL || './assets/room.glb';
+const SCENE_URL = './scene.json';
+const EMBEDDED_SCENE = window.ROOM_SCENE || null;
+
+const EYE_HEIGHT_M = 1.65;
+const FLOOR_LEVEL_M = 0.0;
+const BODY_RADIUS_M = 0.35;
+const WALK_SPEED_MS = 2.6;
+const SPRINT_MULTIPLIER = 1.9;
+
+const el = (id) => document.getElementById(id);
+const loader = el('loader');
+const failure = el('failure');
+
+function fail(message, detail) {
+  loader.hidden = true;
+  failure.hidden = false;
+  el('failure-text').textContent = message;
+  el('failure-detail').textContent = detail || '';
+}
+
+/* --- Geometria rzutu -------------------------------------------------------
+   glTF eksportowany jest w konwencji Y w gore, wiec punkt rzutu (px, py)
+   z scene.json odpowiada pozycji swiata (x = px, z = -py). Kolizje liczymy
+   na wielokacie z scene.json, a nie na siatce - dzieki temu sciana z otworem
+   nadal zatrzymuje, a wynik jest taki sam jak wymiary w umowie.            */
+
+const planFromWorld = (x, z) => [x, -z];
+const worldFromPlan = (px, py) => [px, -py];
+
+function pointInPolygon(poly, px, py) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if ((yi > py) !== (yj > py)) {
+      const cross = xi + ((py - yi) * (xj - xi)) / (yj - yi);
+      if (cross > px) inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function distanceToSegment(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const lengthSq = dx * dx + dy * dy;
+  let t = lengthSq === 0 ? 0 : ((px - ax) * dx + (py - ay) * dy) / lengthSq;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+function makeStandTest(polygons, radius) {
+  return (px, py) => {
+    for (const poly of polygons) {
+      if (!pointInPolygon(poly, px, py)) continue;
+      let clear = true;
+      for (let i = 0; i < poly.length; i++) {
+        const a = poly[i], b = poly[(i + 1) % poly.length];
+        if (distanceToSegment(px, py, a[0], a[1], b[0], b[1]) < radius) { clear = false; break; }
+      }
+      if (clear) return true;
+    }
+    return false;
+  };
+}
+
+function polygonArea(poly) {
+  let total = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % poly.length];
+    total += x1 * y2 - x2 * y1;
+  }
+  return Math.abs(total / 2);
+}
+
+function clearance(poly, px, py) {
+  let best = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    best = Math.min(best, distanceToSegment(px, py, a[0], a[1], b[0], b[1]));
+  }
+  return best;
+}
+
+/** Punkt startowy: najdalej od jakiejkolwiek sciany.
+ *  Srodek ciezkosci wielokata bywa tuz przy scianie albo poza obrysem
+ *  (ksztalt L), a start w rogu wyglada jak blad. */
+function findSpawn(poly, canStand) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const [x, y] of poly) {
+    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+  }
+
+  const steps = 40;
+  let best = null;
+  let bestClearance = -Infinity;
+  for (let i = 1; i < steps; i++) {
+    for (let j = 1; j < steps; j++) {
+      const x = minX + ((maxX - minX) * i) / steps;
+      const y = minY + ((maxY - minY) * j) / steps;
+      if (!canStand(x, y)) continue;
+      const space = clearance(poly, x, y);
+      if (space > bestClearance) { bestClearance = space; best = [x, y]; }
+    }
+  }
+  if (best) return best;
+
+  let sx = 0, sy = 0;
+  for (const [x, y] of poly) { sx += x; sy += y; }
+  return [sx / poly.length, sy / poly.length];
+}
+
+/* --- Scena ---------------------------------------------------------------- */
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+el('stage').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+
+// Gradient nieba. Bez niego okna i drzwi pokazuja plaska plame,
+// co na demo dla klienta wyglada jak niedokonczona scena.
+function makeSky() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 8;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 256);
+  gradient.addColorStop(0.0, '#8fb2d9');
+  gradient.addColorStop(0.45, '#cfdbe8');
+  gradient.addColorStop(0.55, '#e7e2d8');
+  gradient.addColorStop(1.0, '#8d8579');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 8, 256);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+scene.background = makeSky();
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.02).texture;
+
+const hemi = new THREE.HemisphereLight(0xdfe8f2, 0x50463a, 1.1);
+scene.add(hemi);
+
+const sun = new THREE.DirectionalLight(0xfff2dc, 2.2);
+sun.position.set(8, 9, 6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.near = 0.5;
+sun.shadow.camera.far = 40;
+sun.shadow.camera.left = -12;
+sun.shadow.camera.right = 12;
+sun.shadow.camera.top = 12;
+sun.shadow.camera.bottom = -12;
+sun.shadow.bias = -0.0006;
+scene.add(sun);
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshStandardMaterial({ color: 0x8e8878, roughness: 1.0 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.05, 300);
+
+const orbit = new OrbitControls(camera, renderer.domElement);
+orbit.enableDamping = true;
+orbit.dampingFactor = 0.07;
+orbit.maxPolarAngle = Math.PI * 0.495;
+orbit.minDistance = 1.5;
+orbit.maxDistance = 40;
+
+/* Wlasny uklad kamery pieszej: obrot w poziomie na "ciele", w pionie na kamerze.
+   Nie uzywamy PointerLockControls, bo blokada kursora bywa niedostepna
+   (strona w ramce, czesc przegladarek mobilnych) - a wtedy spacer po prostu
+   przestawalby dzialac. Tutaj blokada jest ulatwieniem, nie warunkiem. */
+const walkRig = new THREE.Object3D();
+walkRig.add(camera);
+scene.add(walkRig);
+
+const look = { yaw: 0, pitch: 0 };
+const PITCH_LIMIT = Math.PI / 2 - 0.05;
+const LOOK_SPEED = 0.0022;
+
+function applyLook() {
+  walkRig.rotation.y = look.yaw;
+  camera.rotation.set(look.pitch, 0, 0);
+}
+
+function turn(dx, dy) {
+  look.yaw -= dx * LOOK_SPEED;
+  look.pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, look.pitch - dy * LOOK_SPEED));
+  applyLook();
+}
+
+let dragging = false;
+let lastPointer = null;
+
+const canvas = renderer.domElement;
+
+canvas.addEventListener('pointerdown', (event) => {
+  if (mode !== 'walk') return;
+  dragging = true;
+  lastPointer = { x: event.clientX, y: event.clientY };
+  canvas.setPointerCapture(event.pointerId);
+  if (canvas.requestPointerLock && event.pointerType === 'mouse') {
+    canvas.requestPointerLock();
+  }
+});
+
+canvas.addEventListener('pointermove', (event) => {
+  if (mode !== 'walk') return;
+  if (document.pointerLockElement === canvas) {
+    turn(event.movementX || 0, event.movementY || 0);
+    return;
+  }
+  if (!dragging || !lastPointer) return;
+  turn(event.clientX - lastPointer.x, event.clientY - lastPointer.y);
+  lastPointer = { x: event.clientX, y: event.clientY };
+});
+
+const endDrag = () => { dragging = false; lastPointer = null; };
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+canvas.addEventListener('pointerleave', endDrag);
+
+let mode = 'orbit';
+let sceneData = null;
+let activeVariant = null;
+const ceilings = [];
+let canStand = () => true;
+let spawn = { position: new THREE.Vector3(), target: new THREE.Vector3() };
+let orbitHome = { position: new THREE.Vector3(), target: new THREE.Vector3() };
+
+const keys = new Set();
+addEventListener('keydown', (e) => {
+  keys.add(e.code);
+  if (e.code === 'Escape' && mode === 'walk') setMode('orbit');
+});
+addEventListener('keyup', (e) => keys.delete(e.code));
+addEventListener('blur', () => keys.clear());
+
+const isTouchOnly = matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+function setHint(html) {
+  const hint = el('hint');
+  if (!html) { hint.hidden = true; return; }
+  hint.innerHTML = html;
+  hint.hidden = false;
+}
+
+function setMode(next) {
+  mode = next;
+  el('mode-walk').setAttribute('aria-pressed', String(next === 'walk'));
+  el('mode-orbit').setAttribute('aria-pressed', String(next === 'orbit'));
+
+  // Widok z zewnatrz z sufitem to bialy karton. Chowamy go, tak jak
+  // w makiecie architektonicznej; w spacerze sufit wraca.
+  for (const node of ceilings) node.visible = next === 'walk';
+
+  if (next === 'walk') {
+    orbit.enabled = false;
+    walkRig.add(camera);
+    camera.position.set(0, 0, 0);
+    walkRig.position.copy(spawn.position);
+    look.yaw = spawn.heading || 0;
+    look.pitch = 0;
+    applyLook();
+    setHint(isTouchOnly ? walkHintTouch : walkHint);
+  } else {
+    if (document.pointerLockElement) document.exitPointerLock();
+    scene.add(camera);
+    camera.rotation.set(0, 0, 0);
+    orbit.enabled = true;
+    camera.position.copy(orbitHome.position);
+    orbit.target.copy(orbitHome.target);
+    orbit.update();
+    setHint(orbitHint);
+  }
+}
+
+const walkHint = 'Przeciągnij lub kliknij, żeby się rozglądać · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> chodzenie · <kbd>Shift</kbd> szybciej · <kbd>Esc</kbd> wyjście';
+const walkHintTouch = 'Przeciągnij, żeby się rozglądać. Chodzenie wymaga klawiatury — na telefonie użyj widoku „Rzut”.';
+const orbitHint = 'Przeciągnij, żeby obrócić · przewiń, żeby przybliżyć';
+
+el('mode-walk').addEventListener('click', () => setMode('walk'));
+el('mode-orbit').addEventListener('click', () => setMode('orbit'));
+el('reset').addEventListener('click', () => setMode(mode === 'walk' ? 'walk' : 'orbit'));
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+/* --- Wczytanie ------------------------------------------------------------- */
+
+async function loadSceneData() {
+  if (EMBEDDED_SCENE) return EMBEDDED_SCENE;
+  const response = await fetch(SCENE_URL);
+  if (!response.ok) throw new Error(`${SCENE_URL} → HTTP ${response.status}`);
+  return response.json();
+}
+
+function pluralOpenings(count) {
+  if (count === 1) return 'otwór';
+  const lastTwo = count % 100;
+  const last = count % 10;
+  if (last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14)) return 'otwory';
+  return 'otworów';
+}
+
+function describe(data) {
+  const rooms = data.rooms || [];
+  const area = rooms.reduce((sum, room) => sum + polygonArea(room.polygon_xy_m || []), 0);
+  const openings = rooms.reduce((sum, room) => sum + (room.openings || []).length, 0);
+  const height = rooms.length ? rooms[0].height_m : null;
+
+  el('scene-name').textContent = data.scene_id || 'Scena';
+  const parts = [`${area.toFixed(1).replace('.', ',')} m²`];
+  if (height) parts.push(`wys. ${height.toFixed(2).replace('.', ',')} m`);
+  parts.push(`${openings} ${pluralOpenings(openings)}`);
+  el('scene-meta').textContent = parts.join(' · ');
+
+  if (data.status !== 'approved') {
+    el('scene-warn').hidden = false;
+    el('scene-warn').textContent =
+      data.status === 'example_only'
+        ? 'Geometria syntetyczna — nie pochodzi z rzutu żadnego lokalu.'
+        : `Status: ${data.status} — geometria niezatwierdzona.`;
+  }
+  el('info').hidden = false;
+}
+
+function frameModel(model, data) {
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+
+  const radius = Math.max(size.x, size.z) * 0.8 + size.y;
+  orbitHome.position.set(center.x + radius * 0.75, box.max.y + radius * 0.85, center.z + radius * 0.95);
+  orbitHome.target.set(center.x, box.min.y + size.y * 0.15, center.z);
+
+  const rooms = data.rooms || [];
+  const polygons = rooms.map((room) => room.polygon_xy_m || []).filter((p) => p.length >= 3);
+  canStand = polygons.length ? makeStandTest(polygons, BODY_RADIUS_M) : () => true;
+
+  if (polygons.length) {
+    const [px, py] = findSpawn(polygons[0], canStand);
+    const [wx, wz] = worldFromPlan(px, py);
+    // Kontrakt sceny mowi, ze z = 0 to poziom podlogi wykonczonej, a eksport
+    // zachowuje ten poziom jako y = 0. Liczenie od spodu plyty dawaloby
+    // wzrost mniejszy o jej grubosc.
+    spawn.position.set(wx, FLOOR_LEVEL_M + EYE_HEIGHT_M, wz);
+
+    // Patrzymy w strone najdalszego wierzcholka - to zwykle najciekawszy kadr.
+    let far = polygons[0][0];
+    let farDistance = -Infinity;
+    for (const [vx, vy] of polygons[0]) {
+      const distance = Math.hypot(vx - px, vy - py);
+      if (distance > farDistance) { farDistance = distance; far = [vx, vy]; }
+    }
+    const [fx, fz] = worldFromPlan(far[0], far[1]);
+    spawn.heading = Math.atan2(wx - fx, wz - fz);
+  } else {
+    spawn.position.set(center.x, FLOOR_LEVEL_M + EYE_HEIGHT_M, center.z);
+  }
+
+  ground.position.y = box.min.y - 0.01;
+
+  const span = Math.max(size.x, size.z);
+  sun.position.set(center.x + span, box.max.y + span * 1.2, center.z + span * 0.8);
+  sun.target.position.copy(center);
+  scene.add(sun.target);
+}
+
+const gltfLoader = new GLTFLoader();
+
+Promise.all([
+  loadSceneData(),
+  new Promise((resolve, reject) => {
+    gltfLoader.load(
+      MODEL_URL,
+      (gltf) => resolve(gltf),
+      (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          el('loader-bar').style.width = percent + '%';
+        }
+      },
+      (error) => reject(new Error(`${MODEL_URL} → ${error.message || 'błąd wczytywania'}`))
+    );
+  }),
+])
+  .then(([data, gltf]) => {
+    const model = gltf.scene;
+    model.traverse((node) => {
+      if (node.isMesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+        if (node.material) node.material.side = THREE.DoubleSide;
+        if (node.name.startsWith('ceiling_')) ceilings.push(node);
+      }
+    });
+    scene.add(model);
+
+    sceneData = data;
+    describe(data);
+    frameModel(model, data);
+
+    el('loader-bar').style.width = '100%';
+    loader.classList.add('fading');
+    setTimeout(() => { loader.hidden = true; }, 500);
+
+    el('controls').hidden = false;
+    setMode('orbit');
+    window.__roomReady = true;
+    emit('ready', { scene: data });
+  })
+  .catch((error) => {
+    window.__roomReady = true;
+    fail(
+      'Plik sceny nie został odczytany. Jeśli otwierasz stronę bezpośrednio z dysku, przeglądarka blokuje wczytywanie plików — użyj standalone.html albo serwera lokalnego.',
+      String(error && error.message ? error.message : error)
+    );
+  });
+
+/* --- Petla ---------------------------------------------------------------- */
+
+const clock = new THREE.Clock();
+const direction = new THREE.Vector3();
+const forward = new THREE.Vector3();
+const right = new THREE.Vector3();
+
+function step(delta) {
+  if (mode !== 'walk') return;
+
+  direction.set(0, 0, 0);
+  if (keys.has('KeyW') || keys.has('ArrowUp')) direction.z += 1;
+  if (keys.has('KeyS') || keys.has('ArrowDown')) direction.z -= 1;
+  if (keys.has('KeyD') || keys.has('ArrowRight')) direction.x += 1;
+  if (keys.has('KeyA') || keys.has('ArrowLeft')) direction.x -= 1;
+  if (direction.lengthSq() === 0) return;
+  direction.normalize();
+
+  const speed = WALK_SPEED_MS * (keys.has('ShiftLeft') || keys.has('ShiftRight') ? SPRINT_MULTIPLIER : 1) * delta;
+
+  camera.getWorldDirection(forward);
+  forward.y = 0;
+  forward.normalize();
+  right.crossVectors(forward, camera.up).normalize();
+
+  const body = walkRig.position;
+  const dx = (forward.x * direction.z + right.x * direction.x) * speed;
+  const dz = (forward.z * direction.z + right.z * direction.x) * speed;
+
+  // Proba pelnego ruchu, potem sliznięcie wzdluz sciany zamiast zatrzymania.
+  const tryMove = (nx, nz) => {
+    const [px, py] = planFromWorld(nx, nz);
+    if (canStand(px, py)) { body.x = nx; body.z = nz; return true; }
+    return false;
+  };
+  if (!tryMove(body.x + dx, body.z + dz)) {
+    if (!tryMove(body.x + dx, body.z)) tryMove(body.x, body.z + dz);
+  }
+}
+
+/* --- Publiczne API ----------------------------------------------------------
+   Ta sama powierzchnia ma obsluzyc obie sciezki renderowania: dzis three.js,
+   jutro Pixel Streaming. Strona wola te metody i nie wie, co jest pod spodem.
+   Przy Unrealu setVariant() bedzie wysylac identyfikator do dzialajacej
+   aplikacji zamiast podmieniac materialy lokalnie.                         */
+
+const listeners = new Map();
+
+window.RoomViewer = {
+  get scene() { return scene; },
+  get camera() { return camera; },
+  get mode() { return mode; },
+  get sceneData() { return sceneData; },
+
+  setMode(next) {
+    if (next !== 'walk' && next !== 'orbit') throw new Error(`Nieznany tryb: ${next}`);
+    setMode(next);
+  },
+
+  reset() { setMode(mode); },
+
+  /** Czy w tym punkcie rzutu (metry, uklad z scene.json) da sie stanac. */
+  canStand(px, py) { return canStand(px, py); },
+
+  /** Zamiana punktu rzutu na pozycje w scenie i z powrotem. */
+  worldFromPlan, planFromWorld,
+
+  /** Warianty wykonczenia. Generator ich jeszcze nie tworzy - patrz roadmap M2. */
+  listVariants() { return (sceneData && sceneData.variants) || []; },
+  setVariant(id) {
+    const variants = this.listVariants();
+    if (!variants.some((v) => v.id === id)) {
+      throw new Error(`Wariant ${id} nie istnieje w tej scenie.`);
+    }
+    activeVariant = id;
+    emit('variantchange', { id });
+    return id;
+  },
+  get activeVariant() { return activeVariant; },
+
+  on(event, handler) {
+    if (!listeners.has(event)) listeners.set(event, new Set());
+    listeners.get(event).add(handler);
+    return () => listeners.get(event).delete(handler);
+  },
+};
+
+function emit(event, detail) {
+  const handlers = listeners.get(event);
+  if (handlers) for (const handler of handlers) handler(detail);
+}
+
+renderer.setAnimationLoop(() => {
+  const delta = Math.min(clock.getDelta(), 0.1);
+  step(delta);
+  if (mode === 'orbit') orbit.update();
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
