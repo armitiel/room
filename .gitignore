@@ -22,3 +22,6 @@ catalog/models/**/*.3ds
 catalog/models/**/*.dwg
 catalog/models/**/*.dxf
 work/opt.log*
+
+# Pliki dostarczane do rozmowy przez aplikacje - nie zrodla projektu.
+Claude outputs/
