@@ -521,7 +521,7 @@
     },
     {
       "id": "salon-fotel",
-      "product_id": "fotel",
+      "product_id": "fotel-fin",
       "room_id": "salon",
       "position_m": [
         2.3,
@@ -1216,5 +1216,10 @@
       "roughness": 0.05,
       "opacity": 0.22
     }
-  }
+  },
+  "disclosures": [
+    "Geometria odtworzona z opublikowanego rzutu, nie z dokumentacji wykonawczej. Cztery pomieszczenia wymagają sprawdzenia.",
+    "Meble to w większości bryły zastępcze. Jeden fotel to prawdziwy model Comforty, użyty bez potwierdzonej zgody producenta — wyłącznie do testu.",
+    "Projekt „Dom w kruszczykach 22” jest utworem ARCHON+. Rekonstrukcja służy testowi wewnętrznemu."
+  ]
 }

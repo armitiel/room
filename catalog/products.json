@@ -706,6 +706,35 @@
         "drewno"
       ],
       "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
+    },
+    {
+      "product_id": "fotel-fin",
+      "kind": "placeholder",
+      "name": "Fotel Fin (podstawa metalowa)",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
+      "model_path": "catalog/models/comforty/sofa-fin.glb",
+      "model_author": "Comforty / COM40 Sp. z o.o. Sp.K.",
+      "model_url": "https://comforty.pl/downloads/",
+      "license": "DO USTALENIA. Plik pobrany z otwartej strefy plików Comforty (bez logowania, bez podanych warunków użycia). Brak potwierdzonej zgody na użycie w produkcie komercyjnym — wpis pozostaje placeholder, scena approved go nie przepuści.",
+      "source": "https://comforty.pl/downloads/ — plik Collada, zoptymalizowany do glTF",
+      "dimensions_m": {
+        "x": 0.78,
+        "y": 0.72,
+        "z": 0.78
+      },
+      "dimensions_source": "Gabaryt zmierzony w pliku producenta (0,47 × 0,56 × 0,78 m w osiach pliku); wartości powyżej to typowe wymiary fotela — do potwierdzenia w karcie produktu.",
+      "measured_in_file_m": {
+        "x": 0.47,
+        "y": 0.56,
+        "z": 0.782
+      },
+      "materials": [
+        "tkanina",
+        "metal"
+      ],
+      "note": "Prawdziwy model producenta, przepuszczony przez catalog/tools/optimize_model.py: 7,17 MB Collada → 640 kB glTF, 66 470 → 18 000 trójkątów."
     }
   ],
   "kinds": {

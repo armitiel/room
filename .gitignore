@@ -14,3 +14,11 @@ unreal/**/Saved/
 datasets/sample/input/*
 !datasets/sample/input/README.md
 *.blend1
+# Surowe pliki od producentow - ciezkie i o niepotwierdzonych prawach.
+# Do repozytorium trafia tylko zoptymalizowany .glb.
+catalog/models/**/*.dae
+catalog/models/**/*.fbx
+catalog/models/**/*.3ds
+catalog/models/**/*.dwg
+catalog/models/**/*.dxf
+work/opt.log*
