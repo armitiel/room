@@ -1216,5 +1216,10 @@
       "roughness": 0.05,
       "opacity": 0.22
     }
-  }
+  },
+  "disclosures": [
+    "Geometria odtworzona z opublikowanego rzutu, nie z dokumentacji wykonawczej. Cztery pomieszczenia wymagają sprawdzenia.",
+    "Meble to bryły zastępcze — pokazują skalę i układ, nie są konkretnymi produktami do kupienia.",
+    "Projekt „Dom w kruszczykach 22” jest utworem ARCHON+. Rekonstrukcja służy testowi wewnętrznemu."
+  ]
 }

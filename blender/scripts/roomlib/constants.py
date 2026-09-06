@@ -66,3 +66,12 @@ AREA_ABSOLUTE_FLOOR_M2 = 0.05  # przy malych pomieszczeniach procenty klamia
 
 # Dywany i wycieraczki lezą POD meblami - ich rzut ma prawo sie pokrywac.
 FLOOR_COVERING_MAX_HEIGHT_M = 0.05
+
+# Rodzaje wpisow katalogowych. Rozroznienie jest twarde, bo od niego zalezy,
+# czy wolno powiedziec klientowi "to jest ten mebel", czy tylko "tu stoi sofa".
+PRODUCT_REAL = "real"
+PRODUCT_PLACEHOLDER = "placeholder"
+PRODUCT_KINDS = (PRODUCT_REAL, PRODUCT_PLACEHOLDER)
+
+# Pola, bez ktorych wpis nie moze udawac rzeczywistego produktu.
+REAL_PRODUCT_REQUIRED_FIELDS = ("manufacturer", "product_url", "dimensions_source")

@@ -3,559 +3,713 @@
   "products": [
     {
       "product_id": "sofa-3os",
+      "kind": "placeholder",
       "name": "Sofa trzyosobowa",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/loungeSofaLong.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 2.2,
         "y": 0.92,
         "z": 0.82
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "tkanina",
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "fotel",
+      "kind": "placeholder",
       "name": "Fotel",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/loungeChair.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.86,
         "y": 0.84,
         "z": 0.78
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "tkanina"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "stolik-kawowy",
+      "kind": "placeholder",
       "name": "Stolik kawowy",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/tableCoffee.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 1.1,
         "y": 0.6,
         "z": 0.42
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "dywan-prost",
+      "kind": "placeholder",
       "name": "Dywan prostokątny",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/rugRectangle.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 2.4,
         "y": 1.7,
         "z": 0.02
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "wełna"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "dywan-okr",
+      "kind": "placeholder",
       "name": "Dywan okrągły",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/rugRound.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 1.6,
         "y": 1.6,
         "z": 0.02
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "wełna"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "szafka-rtv",
+      "kind": "placeholder",
       "name": "Szafka RTV",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/cabinetTelevision.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 1.6,
         "y": 0.42,
         "z": 0.45
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "płyta",
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "telewizor",
+      "kind": "placeholder",
       "name": "Telewizor 55 cali",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/televisionModern.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 1.24,
         "y": 0.08,
         "z": 0.72
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "szkło",
         "metal"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik.",
-      "mount_height_m": 0.55
+      "mount_height_m": 0.55,
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "regal",
+      "kind": "placeholder",
       "name": "Regał otwarty",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/bookcaseOpen.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.8,
         "y": 0.32,
         "z": 1.8
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "szafa",
+      "kind": "placeholder",
       "name": "Szafa z drzwiami",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/bookcaseClosedDoors.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 1.0,
         "y": 0.58,
         "z": 2.1
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "płyta",
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "roslina",
+      "kind": "placeholder",
       "name": "Roślina doniczkowa",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/pottedPlant.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.55,
         "y": 0.55,
         "z": 1.3
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "ceramika",
         "zieleń"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "lampa-podl",
+      "kind": "placeholder",
       "name": "Lampa podłogowa",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/lampSquareFloor.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.32,
         "y": 0.32,
         "z": 1.55
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "metal",
         "tkanina"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "stol-jadalny",
+      "kind": "placeholder",
       "name": "Stół jadalny",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/table.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 1.6,
         "y": 0.9,
         "z": 0.75
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "krzeslo",
+      "kind": "placeholder",
       "name": "Krzesło",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/chair.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.46,
         "y": 0.48,
         "z": 0.88
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "biurko",
+      "kind": "placeholder",
       "name": "Biurko",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/desk.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 1.3,
         "y": 0.65,
         "z": 0.75
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "drewno",
         "metal"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "lozko-2os",
+      "kind": "placeholder",
       "name": "Łóżko dwuosobowe 160×200",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/bedDouble.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 1.66,
         "y": 2.06,
         "z": 0.55
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "tkanina",
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "lozko-1os",
+      "kind": "placeholder",
       "name": "Łóżko pojedyncze 90×200",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/bedSingle.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.96,
         "y": 2.06,
         "z": 0.55
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "tkanina",
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "szafka-nocna",
+      "kind": "placeholder",
       "name": "Szafka nocna",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/sideTableDrawers.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.48,
         "y": 0.4,
         "z": 0.52
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "szafka-dolna",
+      "kind": "placeholder",
       "name": "Szafka kuchenna dolna",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/kitchenCabinet.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.6,
         "y": 0.6,
         "z": 0.88
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "płyta"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "szafka-gorna",
+      "kind": "placeholder",
       "name": "Szafka kuchenna górna",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/kitchenCabinetUpper.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.6,
         "y": 0.35,
         "z": 0.72
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "płyta"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik.",
-      "mount_height_m": 1.45
+      "mount_height_m": 1.45,
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "zlewozmywak",
+      "kind": "placeholder",
       "name": "Zlewozmywak z szafką",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/kitchenSink.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.8,
         "y": 0.6,
         "z": 0.88
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "stal",
         "płyta"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "kuchenka",
+      "kind": "placeholder",
       "name": "Kuchenka z piekarnikiem",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/kitchenStove.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.6,
         "y": 0.6,
         "z": 0.88
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "stal"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "lodowka",
+      "kind": "placeholder",
       "name": "Lodówka",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/kitchenFridge.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.6,
         "y": 0.65,
         "z": 1.85
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "stal"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "okap",
+      "kind": "placeholder",
       "name": "Okap kuchenny",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/hoodModern.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.6,
         "y": 0.45,
         "z": 0.6
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "stal"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik.",
-      "mount_height_m": 1.55
+      "mount_height_m": 1.55,
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "wc",
+      "kind": "placeholder",
       "name": "Miska WC ze spłuczką",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/toilet.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.38,
         "y": 0.7,
         "z": 0.8
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "ceramika"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "umywalka",
+      "kind": "placeholder",
       "name": "Umywalka",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/bathroomSink.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.6,
         "y": 0.48,
         "z": 0.55
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "ceramika"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "lustro",
+      "kind": "placeholder",
       "name": "Lustro łazienkowe",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/bathroomMirror.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.7,
         "y": 0.04,
         "z": 0.9
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "szkło"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik.",
-      "mount_height_m": 1.05
+      "mount_height_m": 1.05,
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "wanna",
+      "kind": "placeholder",
       "name": "Wanna",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/bathtub.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 1.7,
         "y": 0.75,
         "z": 0.58
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "akryl"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "kabina",
+      "kind": "placeholder",
       "name": "Kabina prysznicowa",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/shower.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.9,
         "y": 0.9,
         "z": 2.0
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "szkło",
         "ceramika"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "pralka",
+      "kind": "placeholder",
       "name": "Pralka z suszarką",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/washerDryerStacked.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.6,
         "y": 0.62,
         "z": 1.75
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "stal"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
       "product_id": "wieszak",
+      "kind": "placeholder",
       "name": "Wieszak stojący",
-      "manufacturer": "Kenney",
-      "product_url": "https://kenney.nl/assets/furniture-kit",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
       "model_path": "catalog/models/kenney/coatRackStanding.glb",
+      "model_author": "Kenney (kenney.nl)",
+      "model_url": "https://kenney.nl/assets/furniture-kit",
+      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
+      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
       "dimensions_m": {
         "x": 0.45,
         "y": 0.45,
         "z": 1.75
       },
-      "license": "CC0 1.0 Universal (domena publiczna) — użycie komercyjne dozwolone, atrybucja niewymagana",
-      "source": "https://github.com/shorepine/kenney (3d/furniture) — mirror zasobów Kenney.nl",
+      "dimensions_source": "Typowe wymiary rynkowe przyjete przez nas na potrzeby demo. NIE pochodza z karty katalogowej zadnego producenta.",
       "materials": [
         "metal",
         "drewno"
       ],
-      "note": "Model jest bryłą poglądową w stylu low-poly, nie odwzorowaniem konkretnego produktu. Gabaryty powyżej są rzeczywiste i to do nich generator skaluje plik."
+      "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     }
-  ]
+  ],
+  "kinds": {
+    "real": "Rzeczywisty produkt handlowy: znany producent, adres karty produktu, wymiary z karty katalogowej i osobno rozstrzygniete prawo do uzycia modelu 3D.",
+    "placeholder": "Bryla zastepcza. Wymiary sa wiarygodne, ale przyjete przez nas. Nie wolno przedstawiac jej klientowi jako konkretnego mebla do kupienia."
+  }
 }

@@ -18,6 +18,10 @@ from . import geometry as geo
 from . import scene_io
 from .constants import (
     AREA_ABSOLUTE_FLOOR_M2,
+    PRODUCT_KINDS,
+    PRODUCT_PLACEHOLDER,
+    PRODUCT_REAL,
+    REAL_PRODUCT_REQUIRED_FIELDS,
     FLOOR_COVERING_MAX_HEIGHT_M,
     FINISH_PATTERNS,
     SURFACE_ROLES,
@@ -501,6 +505,56 @@ def _check_rooms(scene: Dict[str, Any], report: Report) -> Dict[str, Any]:
     return geometry_by_room
 
 
+def _check_product_kind(
+    product: Dict[str, Any],
+    product_id: str,
+    path: str,
+    status: Any,
+    report: Report,
+    placeholders: set,
+) -> None:
+    """Pilnuje granicy miedzy prawdziwym produktem a bryla zastepcza.
+
+    Scena umeblowana bryłami wyglada tak samo jak umeblowana katalogiem
+    producenta, wiec roznica musi byc zapisana w danych, nie tylko w glowie
+    osoby, ktora ja skladala. Scena zatwierdzona nie moze zawierac zastepnikow:
+    "wymiary sprawdzone" i "mebel przyjety na oko" nie moga stac obok siebie
+    w jednej ofercie.
+    """
+    kind = product.get("kind")
+    if kind is None:
+        report.warning(
+            "product.kind.missing",
+            path + ".product_id",
+            "Produkt {!r} nie mowi, czy jest rzeczywistym meblem, czy bryla zastepcza. "
+            "Dopisz pole kind.".format(product_id),
+        )
+        return
+
+    if kind not in PRODUCT_KINDS:
+        report.error(
+            "product.kind.unknown",
+            path + ".product_id",
+            "Rodzaj {!r} spoza listy: {}.".format(kind, ", ".join(PRODUCT_KINDS)),
+        )
+        return
+
+    if kind == PRODUCT_PLACEHOLDER:
+        placeholders.add(product_id)
+        return
+
+    missing = [f for f in REAL_PRODUCT_REQUIRED_FIELDS if not product.get(f)]
+    if missing:
+        report.error(
+            "product.real.incomplete",
+            path + ".product_id",
+            "Produkt {!r} jest oznaczony jako rzeczywisty, ale brakuje pol: {}. "
+            "Bez nich nie da sie go zamowic ani sprawdzic wymiarow.".format(
+                product_id, ", ".join(missing)
+            ),
+        )
+
+
 def _check_furniture(
     scene: Dict[str, Any],
     catalog: Dict[str, Dict[str, Any]],
@@ -511,6 +565,7 @@ def _check_furniture(
 ) -> Dict[str, Any]:
     furniture = scene.get("furniture", [])
     placed: Dict[str, Any] = {}
+    placeholders: set = set()
 
     if not isinstance(furniture, list):
         report.error("scene.furniture.type", "$.furniture", "Pole furniture musi byc lista.")
@@ -556,6 +611,9 @@ def _check_furniture(
                         product_id
                     ),
                 )
+            _check_product_kind(
+                product, product_id, path, scene.get("status"), report, placeholders
+            )
             if check_models:
                 model_path = scene_io.resolve_model_path(product, root)
                 if model_path is None:
@@ -657,6 +715,26 @@ def _check_furniture(
                 "z_to": base + height,
                 "height": height,
             }
+
+    # Jeden komunikat na produkt, nie na kazde wystapienie - inaczej lista
+    # zastrzezen tonie w powtorzeniach i nikt jej nie czyta.
+    if placeholders:
+        names = ", ".join(sorted(placeholders))
+        if scene.get("status") == STATUS_APPROVED:
+            report.error(
+                "product.placeholder_in_approved_scene",
+                "$.furniture",
+                "Scena zatwierdzona uzywa {} bryl zastepczych ({}). Podmien je na produkty "
+                "z katalogu albo zdejmij status approved - \"wymiary sprawdzone\" i mebel "
+                "przyjety na oko nie moga stac w jednej ofercie.".format(len(placeholders), names),
+            )
+        else:
+            report.info(
+                "product.placeholder",
+                "$.furniture",
+                "Umeblowanie opiera sie na {} bryłach zastepczych ({}). Pokazuja skale i uklad, "
+                "ale nie sa konkretnymi meblami do kupienia.".format(len(placeholders), names),
+            )
 
     ids = list(placed.keys())
     for i in range(len(ids)):

@@ -590,3 +590,103 @@ class TestVariantAssignments(unittest.TestCase):
             "substitutions": [],
         }])
         self.assertTrue(check(data).ok)
+
+
+REAL_PRODUCT = {
+    "product_id": "sofa-real",
+    "kind": "real",
+    "name": "Sofa Modell X",
+    "manufacturer": "Producent Sp. z o.o.",
+    "product_url": "https://przyklad.invalid/sofa-modell-x",
+    "license": "umowa licencyjna nr 12/2026",
+    "dimensions_m": {"x": 2.2, "y": 0.95, "z": 0.82},
+    "dimensions_source": "Karta katalogowa producenta, wydanie 2026",
+}
+
+PLACEHOLDER_PRODUCT = {
+    "product_id": "sofa-zastepcza",
+    "kind": "placeholder",
+    "name": "Sofa trzyosobowa",
+    "license": "CC0",
+    "dimensions_m": {"x": 2.2, "y": 0.95, "z": 0.82},
+}
+
+
+def furnished(product, status="draft"):
+    data = scene(status=status)
+    data["furniture"] = [{
+        "id": "sofa", "product_id": product["product_id"], "room_id": "living-room",
+        "position_m": [2.0, 2.0, 0.0], "rotation_deg": 0.0,
+    }]
+    return data
+
+
+class TestProductKind(unittest.TestCase):
+    """Granica miedzy rzeczywistym produktem a bryla zastepcza."""
+
+    def _check(self, product, status="draft"):
+        return validate.validate_scene(
+            furnished(product, status),
+            catalog={product["product_id"]: product},
+            check_models=False,
+        )
+
+    def test_real_product_passes(self):
+        report = self._check(REAL_PRODUCT)
+        self.assertTrue(report.ok, report.codes())
+
+    def test_placeholder_in_a_draft_is_only_an_observation(self):
+        report = self._check(PLACEHOLDER_PRODUCT)
+        self.assertIn("product.placeholder", report.codes())
+        self.assertTrue(report.ok)
+
+    def test_placeholder_blocks_an_approved_scene(self):
+        report = self._check(PLACEHOLDER_PRODUCT, status="approved")
+        self.assertIn("product.placeholder_in_approved_scene", report.codes())
+        self.assertFalse(report.ok)
+
+    def test_real_product_is_allowed_in_an_approved_scene(self):
+        report = self._check(REAL_PRODUCT, status="approved")
+        self.assertNotIn("product.placeholder_in_approved_scene", report.codes())
+
+    def test_product_without_kind_warns(self):
+        product = dict(PLACEHOLDER_PRODUCT)
+        del product["kind"]
+        report = self._check(product)
+        self.assertIn("product.kind.missing", report.codes())
+        self.assertTrue(report.ok)
+
+    def test_unknown_kind_is_rejected(self):
+        product = dict(PLACEHOLDER_PRODUCT, kind="prawie-prawdziwy")
+        self.assertIn("product.kind.unknown", self._check(product).codes())
+
+    def test_real_product_without_manufacturer_is_rejected(self):
+        product = dict(REAL_PRODUCT, manufacturer=None)
+        codes = self._check(product).codes()
+        self.assertIn("product.real.incomplete", codes)
+
+    def test_real_product_without_dimensions_source_is_rejected(self):
+        product = dict(REAL_PRODUCT)
+        del product["dimensions_source"]
+        self.assertIn("product.real.incomplete", self._check(product).codes())
+
+    def test_real_product_without_product_url_is_rejected(self):
+        product = dict(REAL_PRODUCT, product_url="")
+        self.assertIn("product.real.incomplete", self._check(product).codes())
+
+    def test_placeholder_message_names_the_products(self):
+        report = self._check(PLACEHOLDER_PRODUCT)
+        issue = [i for i in report.issues if i.code == "product.placeholder"][0]
+        self.assertIn("sofa-zastepcza", issue.message)
+
+    def test_one_message_per_product_not_per_item(self):
+        data = furnished(PLACEHOLDER_PRODUCT)
+        second = dict(data["furniture"][0])
+        second["id"] = "sofa-2"
+        second["position_m"] = [4.0, 3.0, 0.0]
+        data["furniture"].append(second)
+        report = validate.validate_scene(
+            data, catalog={PLACEHOLDER_PRODUCT["product_id"]: PLACEHOLDER_PRODUCT},
+            check_models=False,
+        )
+        self.assertEqual(report.codes().count("product.placeholder"), 1)

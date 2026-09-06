@@ -56,6 +56,7 @@
   #info .name { font-weight: 600; }
   #info .meta { color: var(--muted); font-size: 12px; margin-top: .15rem; }
   #info .warn { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--line); color: #e7c07a; font-size: 11.5px; }
+  #info .warn div + div { margin-top: .35rem; }
 
   #controls { left: 50%; transform: translateX(-50%); bottom: 1rem; padding: .4rem; display: flex; gap: .25rem; }
   #variants { right: 1rem; top: 1rem; padding: .4rem; display: flex; flex-direction: column; gap: .25rem; min-width: 8rem; }
@@ -762,12 +763,22 @@ function describe(data) {
   parts.push(`${openings} ${pluralOpenings(openings)}`);
   el('scene-meta').textContent = parts.join(' · ');
 
+  // Zastrzezenia pokazujemy w miejscu, w ktorym scena jest ogladana. Notatka
+  // w pliku, ktorej klient nie widzi, nie jest uczciwoscia - jest alibi.
+  const lines = [];
   if (data.status !== 'approved') {
-    el('scene-warn').hidden = false;
-    el('scene-warn').textContent =
+    lines.push(
       data.status === 'example_only'
         ? 'Geometria syntetyczna — nie pochodzi z rzutu żadnego lokalu.'
-        : `Status: ${data.status} — geometria niezatwierdzona.`;
+        : `Status: ${data.status} — geometria niezatwierdzona.`
+    );
+  }
+  for (const note of data.disclosures || []) lines.push(note);
+
+  if (lines.length) {
+    const box = el('scene-warn');
+    box.hidden = false;
+    box.innerHTML = lines.map((line) => `<div>${line}</div>`).join('');
   }
   el('info').hidden = false;
 }
