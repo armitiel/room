@@ -392,11 +392,17 @@ def import_model(bpy, path):
         bpy.ops.import_scene.gltf(filepath=path)
     elif extension == ".fbx":
         bpy.ops.import_scene.fbx(filepath=path)
+    elif extension == ".dae":
+        # Collada. Producenci mebli udostepniaja czesto wylacznie ten format
+        # albo DWG - a DWG Blender nie czyta bez konwersji.
+        bpy.ops.wm.collada_import(filepath=path)
     elif extension == ".obj":
         if hasattr(bpy.ops.wm, "obj_import"):
             bpy.ops.wm.obj_import(filepath=path)
         else:
             bpy.ops.import_scene.obj(filepath=path)
+    elif extension == ".stl":
+        bpy.ops.wm.stl_import(filepath=path)
     elif extension == ".blend":
         with bpy.data.libraries.load(path, link=False) as (source, target):
             target.objects = list(source.objects)
@@ -404,7 +410,10 @@ def import_model(bpy, path):
             if obj is not None:
                 bpy.context.scene.collection.objects.link(obj)
     else:
-        raise SystemExit("Nieobslugiwany format modelu: {}".format(path))
+        raise SystemExit(
+            "Nieobslugiwany format modelu: {}. Obslugiwane: .glb, .gltf, .fbx, .dae, "
+            ".obj, .stl, .blend. Pliki DWG i DXF trzeba najpierw przekonwertowac.".format(path)
+        )
 
     return [obj for obj in bpy.data.objects if obj not in before]
 
