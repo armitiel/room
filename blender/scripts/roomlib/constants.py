@@ -35,6 +35,12 @@ MAX_ROOM_AREA_M2 = 500.0
 
 DEFAULT_WALL_THICKNESS_M = 0.12
 
+# Stolarka. Oscieznica lini otwor od srodka, wiec swiatlo przejscia jest
+# o dwie szerokosci ramy wezsze niz otwor w scianie - tak samo jak w budynku.
+FRAME_WIDTH_M = 0.06
+GLASS_THICKNESS_M = 0.012
+DOOR_LEAF_THICKNESS_M = 0.04
+
 # Kontrola powierzchni: pokoj moze podac expected_area_m2 przepisane
 # z dokumentacji. Rozbieznosc miedzy ta liczba a powierzchnia policzona
 # z wielokata jest najtanszym testem, czy rzut przepisano poprawnie.

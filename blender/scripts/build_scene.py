@@ -47,7 +47,14 @@ BASE_MATERIALS = {
     "wall": {"color": (0.87, 0.86, 0.83, 1.0), "roughness": 0.90, "metallic": 0.0},
     "ceiling": {"color": (0.95, 0.95, 0.94, 1.0), "roughness": 0.95, "metallic": 0.0},
     "placeholder": {"color": (0.85, 0.25, 0.30, 1.0), "roughness": 0.60, "metallic": 0.0},
+    "frame_window": {"color": (0.12, 0.13, 0.14, 1.0), "roughness": 0.35, "metallic": 0.0},
+    "frame_door": {"color": (0.94, 0.94, 0.92, 1.0), "roughness": 0.45, "metallic": 0.0},
+    "leaf": {"color": (0.29, 0.20, 0.14, 1.0), "roughness": 0.55, "metallic": 0.0},
+    "glass": {"color": (0.72, 0.82, 0.86, 0.22), "roughness": 0.05, "metallic": 0.0},
 }
+
+# Role stolarki, ktore maja byc przezroczyste w eksporcie.
+TRANSPARENT_ROLES = ("glass",)
 
 
 def parse_args(argv=None):
@@ -172,6 +179,20 @@ def get_material(bpy, key):
         if "Metallic" in principled.inputs:
             principled.inputs["Metallic"].default_value = spec["metallic"]
     material.diffuse_color = spec["color"]
+
+    # Alfa ponizej 1 ma sens tylko wtedy, gdy material jest ustawiony na
+    # mieszanie - inaczej eksporter zapisze szybe jako plyte betonu.
+    if spec["color"][3] < 1.0:
+        if principled is not None and "Alpha" in principled.inputs:
+            principled.inputs["Alpha"].default_value = spec["color"][3]
+        for attribute in ("blend_method", "surface_render_method"):
+            if hasattr(material, attribute):
+                try:
+                    setattr(material, attribute, "BLEND" if attribute == "blend_method" else "BLENDED")
+                except (TypeError, ValueError):
+                    pass
+        material.show_transparent_back = False
+
     return material
 
 
@@ -301,6 +322,22 @@ def build_room(bpy, room_plan, parent_collection, report_lines, with_ceiling=Fal
                 )
             )
 
+    # Stolarka. Bez niej otwor pozostaje dziura w scianie i tak tez wyglada.
+    if room_plan.get("joinery"):
+        joinery_collection = ensure_collection(bpy, "stolarka_" + room_id, room_collection)
+        for index, piece in enumerate(room_plan["joinery"]):
+            obj = make_box(
+                bpy,
+                "{}_{}_{}_{}".format(piece["role"], room_id, piece["name"], index),
+                piece["center_m"],
+                piece["size_m"],
+                piece["rotation_deg"],
+                joinery_collection,
+            )
+            obj["room_id"] = room_id
+            obj["role"] = piece["role"]
+            assign_material(bpy, obj, piece["role"])
+
     # Bryly tnace nie sa czescia dostawy - zostaja ukryte na wypadek kontroli.
     for cutter_list in cutters.values():
         for cutter in cutter_list:
@@ -422,7 +459,8 @@ def main() -> int:
     print("Plan zapisany: {}".format(os.path.join(output_dir, "plan.json")))
     print(
         "Do zbudowania: {rooms} pomieszczen, {walls} scian, {openings} otworow, "
-        "{furniture} mebli, {floor_area_m2} m2 podlogi.".format(**plan["totals"])
+        "{joinery} elementow stolarki, {furniture} mebli, "
+        "{floor_area_m2} m2 podlogi.".format(**plan["totals"])
     )
 
     if args.plan_only:

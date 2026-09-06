@@ -61,7 +61,7 @@ rng=np.random.default_rng(6)
 warp=xx+.014*np.sin(yy*19)+.004*np.sin(yy*57+xx*9)
 grain=np.sin(warp*480+np.sin(yy*13)*2)*.022+np.sin(warp*1500+yy*8)*.009
 broad=.030*np.sin(warp*31)+.014*np.sin(warp*83+yy*3)
-woodarr=np.stack([.35+broad+grain,.205+broad*.70+grain*.7,.115+broad*.48+grain*.5],axis=-1)
+woodarr=np.stack([.30+broad+grain,.17+broad*.70+grain*.7,.09+broad*.48+grain*.5],axis=-1)
 woodarr+=rng.normal(0,.003,(N,N,1))
 woodim=teximg("walnut-grain",woodarr)
 wood=textured("Walnut with grain",woodim,.35,.001)
@@ -76,11 +76,11 @@ linen=textured("Lilac fine striped cotton",clothim,.83,.001)
 noise=rng.random((512,512,1))*.09
 up=teximg("grey-upholstery",np.repeat(noise,3,axis=2)+np.array([.34,.35,.355])[None,None,:])
 upholstery=textured("Grey woven upholstery",up,.9,.001)
-setcol("Pale cool grey walls",(.43,.47,.51),.88)
+setcol("Pale cool grey walls",(.37,.40,.43),.88)
 setcol("White ceiling",(.64,.65,.66),.9)
 trim=setcol("White trim",(.76,.74,.68),.65)
 bronze=setcol("Dark metal",(.09,.075,.055),.28)
-gold=mat("Muted golden cushion",(.25,.14,.048),.42)
+gold=mat("Muted golden cushion",(.18,.095,.03),.42)
 purple=mat("Deep mauve cushion",(.10,.073,.11),.82)
 for o in list(bpy.data.objects):
  if o.type=="MESH":
@@ -103,6 +103,8 @@ for i in range(16):
      v=o.data.vertices[o.data.loops[li].vertex_index].co
      uv.data[li].uv=(v.x*.8+offset,v.y*.60+random.random()*.00001)
   y+=1.12
+bpy.data.objects["Floating shelf"].dimensions.x=.98
+bpy.data.objects["Floating shelf"].location.x=.65
 # Headboard has a visible centre joint, as in source photos.
 remove_prefix(("Headboard",))
 for y in [2.49,3.35]:box("Headboard padded panel",(2.80,y,.62),(.14,.848,1.05),upholstery,.022)
@@ -116,7 +118,7 @@ for i in range(nx+1):
   edge=max(0,(.79-x)/.09,(2.115-y)/.08,(y-3.725)/.08)
   z=.574-.17*min(edge,1)**1.7
   envelope=math.exp(-((x-1.78)/.58)**2-((y-2.94)/.60)**2)
-  z+=envelope*(.014*math.sin(41*x+18*y)+.009*math.sin(69*x-23*y)+.006*math.sin(112*x+53*y))
+  z+=envelope*(.017*math.sin(41*x+18*y+1.8*math.sin(13*y))+.011*math.sin(69*x-23*y+2*math.sin(11*x))+.005*math.sin(112*x+53*y))
   z+=.012*math.sin(y*28+x*6)*math.exp(-((x-.9)/.26)**2)
   verts.append((x,y,z));uvs.append((v,u))
 for i in range(nx):
@@ -177,6 +179,7 @@ curve("Knee slope seam",[(.009,0,1.07),(.009,4.12,1.07)],.009,trim)
 # Replace straight fixture by articulated five-spot fixture.
 remove_prefix(("Ceiling fixture","Spotlight"))
 beam("Lamp canopy",(2.13,2.29,2.29),(2.13,2.29,2.32),.09,bronze)
+beam("Lamp canopy connector",(2.13,2.29,2.29),(2.13,2.29,2.20),.012,bronze)
 points=[(1.74,1.62,2.20),(2.22,1.89,2.20),(2.04,2.71,2.20),(2.50,2.98,2.20)]
 for a,b in zip(points,points[1:]):beam("Lamp articulated rail",a,b,.011,bronze)
 for p in points[1:3]:beam("Lamp hinge",(p[0],p[1],2.17),(p[0],p[1],2.24),.019,bronze)
@@ -197,31 +200,36 @@ bs=gm.node_tree.nodes.get("Principled BSDF");bs.inputs["Transmission Weight"].de
 gm.surface_render_method="DITHERED"
 for name in ["Gable glass","Skylight glass"]:
  bpy.data.objects[name].data.materials.clear();bpy.data.objects[name].data.materials.append(gm)
-# Background is illustrative only; does not claim exact outdoor reconstruction.
-grass=mat("Exterior grass",(.12,.18,.038),.95)
-box("Exterior ground context",(1.5,10,-.60),(25,18,.10),grass)
-leafm=[mat("Garden foliage %d"%i,c) for i,c in enumerate([(.07,.14,.025),(.12,.20,.035),(.17,.24,.052),(.095,.16,.024)])]
-for i in range(17):
- x=random.uniform(-8,9);y=random.uniform(7,15);z=random.uniform(.8,2.2)
- bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2,radius=1,location=(x,y,z))
- o=bpy.context.object;o.name="Exterior garden proxy";o.scale=(random.uniform(.6,1.3),random.uniform(.5,1.1),random.uniform(.7,1.5));o.data.materials.append(random.choice(leafm))
+# Exterior appearance uses a UV-mapped fragment of the supplied photograph.
+# It is a flat reference backdrop, not a reconstructed garden.
+photo=bpy.data.images.load(str(ROOT/"work/inspection/IMG_0416(1).jpg"),check_existing=True);photo.pack()
+pm=bpy.data.materials.new("Exterior photo reference");pm.use_nodes=True
+nodes=pm.node_tree.nodes;links=pm.node_tree.links;nodes.clear()
+po=nodes.new("ShaderNodeOutputMaterial");em=nodes.new("ShaderNodeEmission");em.inputs["Strength"].default_value=1.4
+it=nodes.new("ShaderNodeTexImage");it.image=photo
+links.new(it.outputs["Color"],em.inputs["Color"]);links.new(em.outputs[0],po.inputs[0])
+mesh("Exterior photo backdrop",[(.35,5.0,.15),(3.20,5.0,.15),(3.20,5.0,3.25),(.35,5.0,3.25)],[(0,1,2,3)],pm,
+ [(280/1050,1-650/1400),(500/1050,1-650/1400),(500/1050,1-365/1400),(260/1050,1-358/1400)])
+# Photo plane only for camera rays, not an emissive light source.
+plate=bpy.data.objects["Exterior photo backdrop"]
+plate.visible_diffuse=False;plate.visible_glossy=False;plate.visible_transmission=True;plate.visible_shadow=False
 # Daylight anchored at windows with reduced room fill.
 for o in list(bpy.data.objects):
  if o.type=="LIGHT":bpy.data.objects.remove(o,do_unlink=True)
 scene.world.use_nodes=True
 wn=scene.world.node_tree.nodes;wl=scene.world.node_tree.links
-wn.clear();out=wn.new("ShaderNodeOutputWorld");bg=wn.new("ShaderNodeBackground");bg.inputs["Color"].default_value=(.68,.79,1,1);bg.inputs["Strength"].default_value=.22;wl.new(bg.outputs[0],out.inputs[0])
+wn.clear();out=wn.new("ShaderNodeOutputWorld");bg=wn.new("ShaderNodeBackground");bg.inputs["Color"].default_value=(.68,.79,1,1);bg.inputs["Strength"].default_value=.10;wl.new(bg.outputs[0],out.inputs[0])
 def area(name,loc,target,power,size,col):
  bpy.ops.object.light_add(type="AREA",location=loc);o=bpy.context.object;o.name=name;o.data.energy=power;o.data.shape="DISK";o.data.size=size;o.data.color=col;o.rotation_euler=(Vector(target)-o.location).to_track_quat("-Z","Y").to_euler()
-area("Gable daylight",(1.775,3.99,1.43),(2.7,1.4,.65),110,.90,(1,.94,.82))
-area("Roof daylight",(.38,1.46,1.72),(2.6,2.9,.30),85,.65,(.84,.91,1))
-area("Very soft camera fill",(2.4,.5,1.75),(2,3,1),10,1.8,(.9,.94,1))
+area("Gable daylight",(1.775,3.99,1.43),(2.7,1.4,.65),95,.90,(1,.94,.82))
+area("Roof daylight",(.38,1.46,1.72),(2.6,2.9,.30),55,.65,(.84,.91,1))
+area("Very soft camera fill",(2.4,.5,1.75),(2,3,1),5,1.8,(.9,.94,1))
 # Cameras: reference-based estimates, no calibrated camera solve.
 def camera(name,loc,target,lens):
  bpy.ops.object.camera_add(location=loc);o=bpy.context.object;o.name=name;o.data.lens=lens;o.rotation_euler=(Vector(target)-o.location).to_track_quat("-Z","Y").to_euler();return o
-portrait=camera("05 Photo comparison angle",(.59,1.32,1.76),(2.08,3.26,1.38),19)
+portrait=camera("05 Photo comparison angle",(.95,1.18,1.65),(2.08,3.26,1.30),19)
 scene.camera=bpy.data.objects["01 View from entrance"]
-scene.view_settings.view_transform="AgX";scene.view_settings.exposure=-.25
+scene.view_settings.view_transform="AgX";scene.view_settings.exposure=-.50
 scene.render.engine="CYCLES";scene.cycles.samples=48;scene.cycles.use_denoising=True
 gpu=False
 try:
@@ -231,7 +239,10 @@ try:
  gpu=any(d.type!="CPU" for d in prefs.devices)
  if gpu:scene.cycles.device="GPU"
 except Exception as e:print("GPU fallback",e)
-scene["appearance_status"]="Photo-guided materials and detail pass. Textures procedural; exterior illustrative. No calibrated photo match."
+scene["appearance_status"]="Photo-guided materials and detail pass. Textures procedural; exterior from 2D photo reference. No calibrated photo match."
+# Close the wall thickness at the left reveal; avoid a visible light leak.
+gable=bpy.data.objects["Window end left"]
+solid=gable.modifiers.new("Gable wall thickness","SOLIDIFY");solid.thickness=.12;solid.offset=0
 # All used images packed; GLB transfers base-color textures, bump/light may differ.
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/"Room-attic-v04.blend"))
 # Export room only: exterior illustration excluded from portable room file.
@@ -252,5 +263,7 @@ else:
   scene.render.resolution_x=1050 if portraitmode else 1400
   scene.render.resolution_y=1400 if portraitmode else 1050
   scene.render.filepath=str(OUT/filename);bpy.ops.render.render(write_still=True)
-(OUT/"appearance.json").write_text(json.dumps({"gpu_rendering":gpu,"textures":"procedurally generated image textures, embedded","camera":"estimated from reference images, not calibrated","exterior":"illustrative garden proxy; excluded from GLB","measurements":"v03 preserved; no new dimensional claims","improvements":["staggered wood flooring","wood grain textures","striped draped bedding","puffed cushions","split headboard","arched door glazing","five articulated spotlights","heater grille","window-based lighting"]},indent=2))
+(OUT/"appearance.json").write_text(json.dumps({"gpu_rendering":gpu,"textures":"procedurally generated image textures, embedded","camera":"estimated from reference images, not calibrated","exterior":"flat photo-reference backdrop; excluded from GLB","measurements":"v03 preserved; no new dimensional claims","improvements":["staggered wood flooring","wood grain textures","striped draped bedding","puffed cushions","split headboard","arched door glazing","five articulated spotlights","heater grille","window-based lighting"]},indent=2))
 print("V04_DONE",gpu)
+
+

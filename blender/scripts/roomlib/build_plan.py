@@ -18,7 +18,13 @@ import math
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from . import geometry as geo
-from .constants import DEFAULT_WALL_THICKNESS_M, EPS_M
+from .constants import (
+    DEFAULT_WALL_THICKNESS_M,
+    DOOR_LEAF_THICKNESS_M,
+    EPS_M,
+    FRAME_WIDTH_M,
+    GLASS_THICKNESS_M,
+)
 
 Point = Tuple[float, float]
 
@@ -162,13 +168,16 @@ def plan_room(room: Dict[str, Any], thickness_m: float = DEFAULT_WALL_THICKNESS_
 
     by_source = {wall["source_wall_index"]: wall for wall in walls}
     cuts: List[Dict[str, Any]] = []
+    joinery: List[Dict[str, Any]] = []
     for opening in room.get("openings", []) or []:
         wall = by_source.get(opening["wall_index"])
         if wall is None:
             raise BuildPlanError(
                 "Otwor wskazuje sciane {}, ktorej nie ma w planie.".format(opening["wall_index"])
             )
-        cuts.append(plan_opening_cut(wall, opening))
+        cut = plan_opening_cut(wall, opening)
+        cuts.append(cut)
+        joinery.extend(plan_joinery(wall, opening, cut))
 
     return {
         "room_id": room.get("id"),
@@ -178,6 +187,7 @@ def plan_room(room: Dict[str, Any], thickness_m: float = DEFAULT_WALL_THICKNESS_
         "floor_area_m2": geo.area(polygon),
         "walls": walls,
         "openings": cuts,
+        "joinery": joinery,
     }
 
 
@@ -222,7 +232,91 @@ def plan_scene(
             "rooms": len(rooms),
             "walls": sum(len(room["walls"]) for room in rooms),
             "openings": sum(len(room["openings"]) for room in rooms),
+            "joinery": sum(len(room["joinery"]) for room in rooms),
             "furniture": len(scene.get("furniture", []) or []),
             "floor_area_m2": round(sum(room["floor_area_m2"] for room in rooms), 3),
         },
     }
+
+
+def plan_joinery(
+    wall: Dict[str, Any],
+    opening: Dict[str, Any],
+    cut: Dict[str, Any],
+    frame_width_m: float = FRAME_WIDTH_M,
+) -> List[Dict[str, Any]]:
+    """Stolarka jednego otworu: oscieznica, parapet, szyba, skrzydlo.
+
+    Otwor wyciety booleanem jest dziura w scianie i tak tez wyglada.
+    Rama wypelnia oscieze, szyba zamyka pole, a drzwi zewnetrzne dostaja
+    skrzydlo. Elementy sa liczone w ukladzie lokalnym sciany (x wzdluz,
+    y w poprzek, z w gore), a potem obracane o kat sciany - dzieki temu
+    ta funkcja nie wie nic o Blenderze i da sie ja sprawdzic testem.
+
+    Zwraca liste bryl: name, role, center_m, size_m, rotation_deg.
+    """
+    kind = opening.get("kind")
+    if kind == "passage":
+        return []  # otwarcie miedzy pomieszczeniami nie ma stolarki
+
+    width = float(opening["width_m"])
+    height = float(opening["height_m"])
+    sill = float(opening["sill_m"])
+    thickness = float(wall["thickness_m"])
+    angle = float(cut["rotation_deg"])
+    centre_x, centre_y, _ = cut["center_m"]
+    frame = min(frame_width_m, width / 3.0, height / 3.0)
+
+    rad = math.radians(angle)
+    cos_a, sin_a = math.cos(rad), math.sin(rad)
+
+    def place(name, role, lx, lz, size_x, size_y, size_z):
+        return {
+            "name": name,
+            "role": role,
+            "center_m": (centre_x + lx * cos_a, centre_y + lx * sin_a, lz),
+            "size_m": (size_x, size_y, size_z),
+            "rotation_deg": angle,
+        }
+
+    pieces: List[Dict[str, Any]] = []
+    half = width / 2.0
+    top = sill + height
+    has_sill = kind == "window"
+
+    # Okna i drzwi dostaja osobne role, bo w budynku sa z innego materialu:
+    # stolarka okienna zwykle ciemna, oscieznice drzwiowe biale.
+    frame_role = "frame_window" if kind == "window" else "frame_door"
+
+    # Boczne oscieznice na pelna wysokosc otworu.
+    for side, sign in (("left", -1.0), ("right", 1.0)):
+        pieces.append(
+            place(
+                "jamb_" + side, frame_role,
+                sign * (half - frame / 2.0), sill + height / 2.0,
+                frame, thickness, height,
+            )
+        )
+
+    inner_width = max(width - 2 * frame, 0.0)
+
+    # Nadproze.
+    pieces.append(place("head", frame_role, 0.0, top - frame / 2.0, inner_width, thickness, frame))
+
+    if has_sill:
+        pieces.append(place("sill", frame_role, 0.0, sill + frame / 2.0, inner_width, thickness, frame))
+
+    inner_bottom = sill + frame if has_sill else sill
+    inner_height = max(top - frame - inner_bottom, 0.0)
+    inner_centre_z = inner_bottom + inner_height / 2.0
+
+    if kind == "window" and inner_width > 0 and inner_height > 0:
+        pieces.append(
+            place("glass", "glass", 0.0, inner_centre_z, inner_width, GLASS_THICKNESS_M, inner_height)
+        )
+    elif kind == "door" and inner_width > 0 and inner_height > 0 and opening.get("leaf", False):
+        pieces.append(
+            place("leaf", "leaf", 0.0, inner_centre_z, inner_width, DOOR_LEAF_THICKNESS_M, inner_height)
+        )
+
+    return pieces

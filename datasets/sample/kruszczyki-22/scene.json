@@ -194,7 +194,8 @@
           "width_m": 1.05,
           "sill_m": 0.0,
           "height_m": 2.1,
-          "note": "drzwi wejsciowe, 105/210 z rzutu"
+          "note": "drzwi wejsciowe, 105/210 z rzutu",
+          "leaf": true
         },
         {
           "kind": "door",

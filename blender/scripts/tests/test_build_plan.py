@@ -245,3 +245,98 @@ class TestScenePlan(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestJoinery(unittest.TestCase):
+    """Stolarka otworu: oscieznica, parapet, szyba, skrzydlo."""
+
+    WINDOW = {"kind": "window", "wall_index": 0, "offset_m": 1.0, "width_m": 1.4,
+              "sill_m": 0.9, "height_m": 1.4}
+    DOOR = {"kind": "door", "wall_index": 0, "offset_m": 0.5, "width_m": 0.9,
+            "sill_m": 0.0, "height_m": 2.0}
+
+    def _pieces(self, opening):
+        plan = bp.plan_room(room(openings=[dict(opening)]), THICKNESS)
+        return {p["name"]: p for p in plan["joinery"]}
+
+    def test_window_has_two_jambs_head_sill_and_glass(self):
+        pieces = self._pieces(self.WINDOW)
+        self.assertEqual(
+            sorted(pieces), ["glass", "head", "jamb_left", "jamb_right", "sill"]
+        )
+
+    def test_door_has_no_sill_and_no_glass(self):
+        pieces = self._pieces(self.DOOR)
+        self.assertEqual(sorted(pieces), ["head", "jamb_left", "jamb_right"])
+
+    def test_interior_door_stays_open_so_it_can_be_walked_through(self):
+        pieces = self._pieces(self.DOOR)
+        self.assertNotIn("leaf", pieces)
+
+    def test_door_marked_with_leaf_gets_one(self):
+        pieces = self._pieces(dict(self.DOOR, leaf=True))
+        self.assertIn("leaf", pieces)
+
+    def test_passage_has_no_joinery_at_all(self):
+        pieces = self._pieces({"kind": "passage", "wall_index": 0, "offset_m": 0.5,
+                               "width_m": 2.0, "sill_m": 0.0, "height_m": 2.4})
+        self.assertEqual(pieces, {})
+
+    def test_window_and_door_frames_get_different_roles(self):
+        window = self._pieces(self.WINDOW)
+        door = self._pieces(self.DOOR)
+        self.assertEqual(window["head"]["role"], "frame_window")
+        self.assertEqual(door["head"]["role"], "frame_door")
+
+    def test_frame_is_narrower_than_the_opening(self):
+        pieces = self._pieces(self.WINDOW)
+        self.assertLess(pieces["head"]["size_m"][0], self.WINDOW["width_m"])
+
+    def test_glass_spans_the_opening_minus_two_frames(self):
+        pieces = self._pieces(self.WINDOW)
+        glass = pieces["glass"]
+        expected = self.WINDOW["width_m"] - 2 * 0.06
+        self.assertAlmostEqual(glass["size_m"][0], expected, places=6)
+
+    def test_glass_is_thin(self):
+        pieces = self._pieces(self.WINDOW)
+        self.assertLess(pieces["glass"]["size_m"][1], 0.02)
+
+    def test_glass_sits_between_sill_and_head(self):
+        pieces = self._pieces(self.WINDOW)
+        glass = pieces["glass"]
+        bottom = glass["center_m"][2] - glass["size_m"][2] / 2
+        top = glass["center_m"][2] + glass["size_m"][2] / 2
+        self.assertGreaterEqual(round(bottom, 6), round(self.WINDOW["sill_m"] + 0.06, 6))
+        self.assertLessEqual(
+            round(top, 6), round(self.WINDOW["sill_m"] + self.WINDOW["height_m"] - 0.06, 6)
+        )
+
+    def test_jambs_sit_at_the_edges_of_the_opening(self):
+        pieces = self._pieces(self.WINDOW)
+        left = pieces["jamb_left"]["center_m"][0]
+        right = pieces["jamb_right"]["center_m"][0]
+        centre = self.WINDOW["offset_m"] + self.WINDOW["width_m"] / 2
+        self.assertAlmostEqual((left + right) / 2, centre, places=6)
+        self.assertAlmostEqual(right - left, self.WINDOW["width_m"] - 0.06, places=6)
+
+    def test_joinery_depth_follows_wall_thickness(self):
+        pieces = self._pieces(self.WINDOW)
+        self.assertAlmostEqual(pieces["jamb_left"]["size_m"][1], THICKNESS, places=6)
+
+    def test_narrow_opening_shrinks_the_frame_instead_of_inverting_it(self):
+        narrow = dict(self.WINDOW, width_m=0.12, height_m=0.3, offset_m=1.0)
+        pieces = self._pieces(narrow)
+        self.assertGreater(pieces["head"]["size_m"][0], 0.0)
+        for piece in pieces.values():
+            for size in piece["size_m"]:
+                self.assertGreater(size, 0.0)
+
+    def test_joinery_is_counted_in_the_totals(self):
+        scene = {
+            "scene_id": "t", "status": "draft",
+            "rooms": [room(openings=[dict(self.WINDOW), dict(self.DOOR)])],
+            "furniture": [], "variants": [],
+        }
+        plan = bp.plan_scene(scene, {}, THICKNESS)
+        self.assertEqual(plan["totals"]["joinery"], 8)
