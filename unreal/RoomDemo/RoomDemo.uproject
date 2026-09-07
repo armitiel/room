@@ -1,0 +1,14 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.8",
+	"Category": "Room",
+	"Description": "Room - spacer po mieszkaniu zbudowanym z kontraktu scene.json",
+	"Modules": [],
+	"Plugins": [
+		{ "Name": "PythonScriptPlugin", "Enabled": true },
+		{ "Name": "EditorScriptingUtilities", "Enabled": true },
+		{ "Name": "VariantManager", "Enabled": true },
+		{ "Name": "VariantManagerContent", "Enabled": true },
+		{ "Name": "InterchangeEditor", "Enabled": true }
+	]
+}

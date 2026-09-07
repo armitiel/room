@@ -1,0 +1,11 @@
+# Wszystko ponizej Unreal wytwarza sam z FBX i scene.json.
+# W repozytorium trzymamy tylko zrodla: .uproject, Config i skrypty.
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+Content/
+*.sln
+*.suo
+*.VC.db
