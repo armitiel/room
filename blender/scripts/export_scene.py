@@ -180,6 +180,14 @@ def main() -> int:
     bpy.ops.object.select_all(action="DESELECT")
     for obj in exported:
         obj.select_set(True)
+        # Product identifiers live on the furniture anchor, not on its meshes.
+        # Keep that hierarchy in glTF so the viewer can style and collide with
+        # a whole piece of furniture instead of guessing from mesh names.
+        parent = obj.parent
+        while parent is not None:
+            if parent.type == "EMPTY":
+                parent.select_set(True)
+            parent = parent.parent
     bpy.context.view_layer.objects.active = exported[0]
 
     if args.format == "fbx":

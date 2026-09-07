@@ -510,7 +510,7 @@
     },
     {
       "id": "salon-sofa",
-      "product_id": "sofa-3os",
+      "product_id": "comforty-grid-sofa",
       "room_id": "salon",
       "position_m": [
         0.75,
@@ -521,7 +521,7 @@
     },
     {
       "id": "salon-fotel",
-      "product_id": "fotel-fin",
+      "product_id": "comforty-fin-fotel",
       "room_id": "salon",
       "position_m": [
         2.3,
@@ -590,8 +590,8 @@
       "product_id": "lampa-podl",
       "room_id": "salon",
       "position_m": [
-        0.45,
-        4.8,
+        0.4,
+        4.05,
         0.0
       ],
       "rotation_deg": 0.0
@@ -991,6 +991,17 @@
         0.0
       ],
       "rotation_deg": 0.0
+    },
+    {
+      "id": "sypialnia-1-fotel",
+      "product_id": "comforty-ume-fotel",
+      "room_id": "pokoj-srodek",
+      "position_m": [
+        5.35,
+        4.7,
+        0.0
+      ],
+      "rotation_deg": 25.0
     }
   ],
   "variants": [
@@ -1219,7 +1230,7 @@
   },
   "disclosures": [
     "Geometria odtworzona z opublikowanego rzutu, nie z dokumentacji wykonawczej. Cztery pomieszczenia wymagają sprawdzenia.",
-    "Meble to w większości bryły zastępcze. Jeden fotel to prawdziwy model Comforty, użyty bez potwierdzonej zgody producenta — wyłącznie do testu.",
+    "Siedziska w salonie to prawdziwe modele Comforty, użyte bez potwierdzonej zgody producenta. Pozostałe meble to bryły zastępcze — pokazują skalę i układ, nie są produktami do kupienia.",
     "Projekt „Dom w kruszczykach 22” jest utworem ARCHON+. Rekonstrukcja służy testowi wewnętrznemu."
   ]
 }

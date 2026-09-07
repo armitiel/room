@@ -113,6 +113,45 @@ def shrink_textures(bpy, max_side):
     return changed
 
 
+def normalise_units(bpy, size):
+    """Sprowadza model do metrow, jesli plik zapisano w milimetrach.
+
+    Producenci mieszaja jednostki nawet w obrebie jednej biblioteki: fotel Fin
+    przyszedl w metrach, a sofa House w milimetrach - z gabarytem 2725 zamiast
+    2,73. Bez tego kroku mebel wchodzi do sceny jako obiekt wielkosci ulicy,
+    a przy skalowaniu do katalogu wyglada poprawnie tylko przypadkiem.
+
+    Heurystyka jest celowo tepa: zaden mebel nie ma dwudziestu metrow.
+    """
+    if size is None:
+        return 1.0
+    if max(size) < 20.0:
+        return 1.0
+
+    factor = 0.001 if max(size) < 20000 else 0.01
+
+    # Skalujemy przez jeden pusty obiekt nadrzedny zamiast przez kazdy korzen
+    # osobno. Przy imporcie Collady hierarchia potrafi byc taka, ze ten sam
+    # obiekt dostaje mnoznik dwa razy - sofa House wyszla wtedy trzymilimetrowa.
+    pivot = bpy.data.objects.new("normalizacja", None)
+    bpy.context.scene.collection.objects.link(pivot)
+    for obj in list(bpy.context.scene.objects):
+        if obj is not pivot and obj.parent is None:
+            obj.parent = pivot
+            obj.matrix_parent_inverse.identity()
+    pivot.scale = (factor, factor, factor)
+    bpy.context.view_layer.update()
+
+    sprawdzenie = bounds(bpy)
+    if sprawdzenie is None or not (0.05 <= max(sprawdzenie) <= 20.0):
+        print("UWAGA: po przeliczeniu jednostek gabaryt to {} - to nie wyglada "
+              "na mebel. Sprawdz plik recznie.".format(sprawdzenie))
+    else:
+        print("Plik byl w innych jednostkach - przeskalowano x{} do {} m".format(
+            factor, sprawdzenie))
+    return factor
+
+
 def main():
     args = parse_args()
     try:
@@ -124,6 +163,9 @@ def main():
     import_any(bpy, os.path.abspath(args.source))
 
     size = bounds(bpy)
+    factor = normalise_units(bpy, size)
+    if factor != 1.0:
+        size = bounds(bpy)
     before, after = decimate(bpy, args.triangles)
     textures = shrink_textures(bpy, args.texture)
 

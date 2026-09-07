@@ -708,33 +708,123 @@
       "note": "Bryla pogladowa w stylu low-poly. Nie odwzorowuje zadnego konkretnego mebla i nie da sie jej kupic. Sluzy do pokazania skali i ukladu funkcjonalnego."
     },
     {
-      "product_id": "fotel-fin",
+      "product_id": "comforty-grid-sofa",
       "kind": "placeholder",
-      "name": "Fotel Fin (podstawa metalowa)",
+      "name": "Sofa Grid Regular (Comforty)",
       "manufacturer": null,
       "product_url": null,
       "price": null,
-      "model_path": "catalog/models/comforty/sofa-fin.glb",
+      "model_path": "catalog/models/comforty/grid_regular.glb",
       "model_author": "Comforty / COM40 Sp. z o.o. Sp.K.",
       "model_url": "https://comforty.pl/downloads/",
-      "license": "DO USTALENIA. Plik pobrany z otwartej strefy plików Comforty (bez logowania, bez podanych warunków użycia). Brak potwierdzonej zgody na użycie w produkcie komercyjnym — wpis pozostaje placeholder, scena approved go nie przepuści.",
-      "source": "https://comforty.pl/downloads/ — plik Collada, zoptymalizowany do glTF",
+      "license": "DO USTALENIA. Plik z otwartej strefy plików Comforty (bez logowania, bez podanych warunków użycia). Brak potwierdzonej zgody na użycie w produkcie komercyjnym — wpis pozostaje placeholder, scena approved go nie przepuści.",
+      "source": "https://comforty.pl/downloads/ — Collada, zoptymalizowany przez catalog/tools/optimize_model.py",
       "dimensions_m": {
-        "x": 0.78,
-        "y": 0.72,
-        "z": 0.78
+        "x": 2.754,
+        "y": 0.998,
+        "z": 0.852
       },
-      "dimensions_source": "Gabaryt zmierzony w pliku producenta (0,47 × 0,56 × 0,78 m w osiach pliku); wartości powyżej to typowe wymiary fotela — do potwierdzenia w karcie produktu.",
-      "measured_in_file_m": {
-        "x": 0.47,
-        "y": 0.56,
-        "z": 0.782
-      },
+      "dimensions_source": "Zmierzone w pliku producenta po normalizacji jednostek. To lepsze źródło niż wymiary przyjęte przez nas, ale wciąż nie karta katalogowa — do potwierdzenia.",
       "materials": [
         "tkanina",
         "metal"
       ],
-      "note": "Prawdziwy model producenta, przepuszczony przez catalog/tools/optimize_model.py: 7,17 MB Collada → 640 kB glTF, 66 470 → 18 000 trójkątów."
+      "note": "Prawdziwy model Comforty po redukcji do budżetu przeglądarki (18 000 trójkątów)."
+    },
+    {
+      "product_id": "comforty-james-sofa",
+      "kind": "placeholder",
+      "name": "Sofa modułowa James (Comforty)",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
+      "model_path": "catalog/models/comforty/james.glb",
+      "model_author": "Comforty / COM40 Sp. z o.o. Sp.K.",
+      "model_url": "https://comforty.pl/downloads/",
+      "license": "DO USTALENIA. Plik z otwartej strefy plików Comforty (bez logowania, bez podanych warunków użycia). Brak potwierdzonej zgody na użycie w produkcie komercyjnym — wpis pozostaje placeholder, scena approved go nie przepuści.",
+      "source": "https://comforty.pl/downloads/ — Collada, zoptymalizowany przez catalog/tools/optimize_model.py",
+      "dimensions_m": {
+        "x": 3.55,
+        "y": 2.433,
+        "z": 2.08
+      },
+      "dimensions_source": "Zmierzone w pliku producenta po normalizacji jednostek. To lepsze źródło niż wymiary przyjęte przez nas, ale wciąż nie karta katalogowa — do potwierdzenia.",
+      "materials": [
+        "tkanina",
+        "drewno"
+      ],
+      "note": "Prawdziwy model Comforty po redukcji do budżetu przeglądarki (18 000 trójkątów)."
+    },
+    {
+      "product_id": "comforty-mellow-sofa",
+      "kind": "placeholder",
+      "name": "Sofa Mellow Light 110 (Comforty)",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
+      "model_path": "catalog/models/comforty/mellon_light.glb",
+      "model_author": "Comforty / COM40 Sp. z o.o. Sp.K.",
+      "model_url": "https://comforty.pl/downloads/",
+      "license": "DO USTALENIA. Plik z otwartej strefy plików Comforty (bez logowania, bez podanych warunków użycia). Brak potwierdzonej zgody na użycie w produkcie komercyjnym — wpis pozostaje placeholder, scena approved go nie przepuści.",
+      "source": "https://comforty.pl/downloads/ — Collada, zoptymalizowany przez catalog/tools/optimize_model.py",
+      "dimensions_m": {
+        "x": 1.72,
+        "y": 0.937,
+        "z": 1.104
+      },
+      "dimensions_source": "Zmierzone w pliku producenta po normalizacji jednostek. To lepsze źródło niż wymiary przyjęte przez nas, ale wciąż nie karta katalogowa — do potwierdzenia.",
+      "materials": [
+        "tkanina"
+      ],
+      "note": "Prawdziwy model Comforty po redukcji do budżetu przeglądarki (18 000 trójkątów)."
+    },
+    {
+      "product_id": "comforty-fin-fotel",
+      "kind": "placeholder",
+      "name": "Fotel Fin, podstawa metalowa (Comforty)",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
+      "model_path": "catalog/models/comforty/fin.glb",
+      "model_author": "Comforty / COM40 Sp. z o.o. Sp.K.",
+      "model_url": "https://comforty.pl/downloads/",
+      "license": "DO USTALENIA. Plik z otwartej strefy plików Comforty (bez logowania, bez podanych warunków użycia). Brak potwierdzonej zgody na użycie w produkcie komercyjnym — wpis pozostaje placeholder, scena approved go nie przepuści.",
+      "source": "https://comforty.pl/downloads/ — Collada, zoptymalizowany przez catalog/tools/optimize_model.py",
+      "dimensions_m": {
+        "x": 0.47,
+        "y": 0.56,
+        "z": 0.782
+      },
+      "dimensions_source": "Zmierzone w pliku producenta po normalizacji jednostek. To lepsze źródło niż wymiary przyjęte przez nas, ale wciąż nie karta katalogowa — do potwierdzenia.",
+      "materials": [
+        "tkanina",
+        "metal"
+      ],
+      "note": "Prawdziwy model Comforty po redukcji do budżetu przeglądarki (18 000 trójkątów)."
+    },
+    {
+      "product_id": "comforty-ume-fotel",
+      "kind": "placeholder",
+      "name": "Fotel Ume (Comforty)",
+      "manufacturer": null,
+      "product_url": null,
+      "price": null,
+      "model_path": "catalog/models/comforty/ume.glb",
+      "model_author": "Comforty / COM40 Sp. z o.o. Sp.K.",
+      "model_url": "https://comforty.pl/downloads/",
+      "license": "DO USTALENIA. Plik z otwartej strefy plików Comforty (bez logowania, bez podanych warunków użycia). Brak potwierdzonej zgody na użycie w produkcie komercyjnym — wpis pozostaje placeholder, scena approved go nie przepuści.",
+      "source": "https://comforty.pl/downloads/ — Collada, zoptymalizowany przez catalog/tools/optimize_model.py",
+      "dimensions_m": {
+        "x": 0.95,
+        "y": 0.74,
+        "z": 0.751
+      },
+      "dimensions_source": "Zmierzone w pliku producenta po normalizacji jednostek. To lepsze źródło niż wymiary przyjęte przez nas, ale wciąż nie karta katalogowa — do potwierdzenia.",
+      "materials": [
+        "tkanina",
+        "drewno"
+      ],
+      "note": "Prawdziwy model Comforty po redukcji do budżetu przeglądarki (18 000 trójkątów)."
     }
   ],
   "kinds": {

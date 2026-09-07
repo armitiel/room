@@ -457,17 +457,29 @@ def fit_to_catalogue(bpy, holder, created, dimensions, mount_height_m=0.0):
     lo, hi = bounds
     size = [hi[axis] - lo[axis] for axis in range(3)]
 
-    target_x = float(dimensions.get("x", size[0]) or size[0])
-    target_y = float(dimensions.get("y", size[1]) or size[1])
+    targets = [
+        float(dimensions.get("x", size[0]) or size[0]),
+        float(dimensions.get("y", size[1]) or size[1]),
+        float(dimensions.get("z", size[2]) or size[2]),
+    ]
 
-    # Osie cienkie pomijamy. Lustro ma w katalogu 4 cm glebokosci, a model
-    # 14 cm razem z ramka - liczenie skali z tej osi zmniejszyloby lustro
-    # do jednej trzeciej. O skali decyduje wymiar, ktory realnie ustawiamy.
-    ratios = []
-    for axis, target in ((0, target_x), (1, target_y)):
-        if size[axis] > 1e-6 and target >= THIN_AXIS_M:
-            ratios.append(target / size[axis])
-    scale = min(ratios) if ratios else 1.0
+    # O skali decyduje NAJWIEKSZY zadeklarowany wymiar mebla.
+    #
+    # Dlaczego nie rzut: lampa podlogowa ma 12 cm srednicy w pliku i 32 cm
+    # w katalogu, wiec skalowanie po rzucie rozciagnelo ja do 2,29 m wysokosci.
+    # Dlaczego nie najmniejszy wspolczynnik: lozko dwuosobowe skurczyloby sie
+    # do 1,39 m, bo wysokosc w pliku nie obejmuje zaglowka.
+    # Wymiar dominujacy to ten, ktory czlowiek podaje jako pierwszy patrzac
+    # na mebel, i wzgledem niego proporcje wychodza poprawnie.
+    #
+    # Osie cienkie pomijamy: lustro ma w katalogu 4 cm glebokosci, a model
+    # 14 cm razem z ramka.
+    kandydaci = [
+        (target, target / size[axis])
+        for axis, target in enumerate(targets)
+        if size[axis] > 1e-6 and target >= THIN_AXIS_M
+    ]
+    scale = max(kandydaci)[1] if kandydaci else 1.0
 
     for obj in created:
         if obj.parent is holder:
@@ -524,6 +536,25 @@ def build_furniture(bpy, plan, root, parent_collection, args, report_lines):
                         item["product_id"], applied
                     )
                 )
+
+            # Po przeskalowaniu proporcje modelu moga rozjechac sie z katalogiem.
+            # Kontrola kolizji liczy z katalogu, wiec rozjazd trzeba widziec.
+            bounds_after = world_bounds(created)
+            declared = item["dimensions_m"] or {}
+            if bounds_after and declared:
+                lo2, hi2 = bounds_after
+                for axis, key in enumerate("xyz"):
+                    target = declared.get(key)
+                    if not target:
+                        continue
+                    actual = hi2[axis] - lo2[axis]
+                    if actual > target * 1.15:
+                        report_lines.append(
+                            "Model {!r} po skalowaniu ma {:.2f} m w osi {} wobec {:.2f} m "
+                            "w katalogu - proporcje pliku nie zgadzaja sie z wpisem.".format(
+                                item["product_id"], actual, key.upper(), target
+                            )
+                        )
         elif args.placeholders:
             dimensions = item["dimensions_m"] or {}
             size = (
