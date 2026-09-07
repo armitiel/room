@@ -5,7 +5,7 @@ mieszkanie: obrys, wysokość, otwory, wykończenia i warianty. Różnica jest
 jedna i trzeba o niej pamiętać:
 
 **Geometria nie powstaje z tego pliku.** Pochodzi z rekonstrukcji ze zdjęć —
-`work/scenes/attic-room-v05/Room-attic-v05.blend`. Katalog `work/` jest poza
+`work/scenes/attic-room-v06/Room-attic-v06.blend`. Katalog `work/` jest poza
 repozytorium, więc na nowej maszynie trzeba ten blend mieć albo odtworzyć
 skryptami `blender/scripts/reconstruct_attic*.py` i `refine_*_v0*.py`.
 `scene.json` daje reszcie potoku to, czego blend nie niesie: obrys do świateł

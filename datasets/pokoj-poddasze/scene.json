@@ -9,7 +9,7 @@
    "kind": "photo_reconstruction",
    "author": "wlasciciel pokoju",
    "retrieved": "2026-09-07",
-   "note": "Geometria pochodzi z work/scenes/attic-room-v05/Room-attic-v05.blend - rekonstrukcji ze zdjec i nagrania, robionej skryptami blender/scripts/reconstruct_attic*.py oraz refine_*_v0*.py. Wymiary sa odczytem ze zdjec, nie pomiarem tasma."
+   "note": "Geometria pochodzi z work/scenes/attic-room-v06/Room-attic-v06.blend - rekonstrukcji ze zdjec i nagrania, robionej skryptami blender/scripts/reconstruct_attic*.py oraz refine_*_v0*.py. Wersja v06 ma lozko poprawione wedlug skanu gaussowskiego (tools/splat). Wymiary sa odczytem ze zdjec i ze skanu, nie pomiarem tasma."
   },
   {
    "kind": "texture_library",

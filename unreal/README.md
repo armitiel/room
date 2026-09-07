@@ -1,7 +1,7 @@
 # Integracja Unreal
 
 Poziom `/Game/Room/Maps/L_Room` to **pokój na poddaszu** — rekonstrukcja ze
-zdjęć z `work/scenes/attic-room-v05/Room-attic-v05.blend`, opisana kontraktem
+zdjęć z `work/scenes/attic-room-v06/Room-attic-v06.blend`, opisana kontraktem
 `datasets/pokoj-poddasze/scene.json`. Geometria idzie przez Blendera do FBX,
 a poziom buduje skrypt — nie ma kroku „ktoś kliknął import".
 
@@ -223,7 +223,7 @@ to odpowiednik `RoomViewer.setVariant('premium')` w przeglądarce.
   pomieszczenie liczona ze środka ciężkości wielokąta. To nie jest scenografia.
 - **Pixel Streaming nie istnieje.** Ani buildu serwerowego, ani hostingu.
 - **Blend pokoju jest poza repozytorium.** `work/` jest w `.gitignore`, więc
-  na nowej maszynie trzeba mieć `Room-attic-v05.blend` albo odtworzyć go
+  na nowej maszynie trzeba mieć `Room-attic-v06.blend` albo odtworzyć go
   skryptami `reconstruct_attic*.py` i `refine_*_v0*.py`. W repozytorium jest
   tylko opis sceny i mapa ról.
 - **Obrys pokoju to prostokąt.** Ściana kolankowa i skos są w geometrii, ale

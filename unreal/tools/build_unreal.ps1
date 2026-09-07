@@ -16,7 +16,7 @@
             -Scene datasets\sample\kruszczyki-22\scene.json -Roles ""
 #>
 param(
-    [string]$Blend   = "work\scenes\attic-room-v05\Room-attic-v05.blend",
+    [string]$Blend   = "work\scenes\attic-room-v06\Room-attic-v06.blend",
     [string]$Scene   = "datasets\pokoj-poddasze\scene.json",
     [string]$Roles   = "datasets\pokoj-poddasze\role-map.json",
     [string]$Textures = "work\textures",
