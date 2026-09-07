@@ -194,6 +194,72 @@ if Z_NARZUTA and TEKSTURA.exists():
     narzuta_dodana = True
 
 
+# --- 4. Uszczelnienie powloki -------------------------------------------
+# W Unrealu widac bylo swiatlo w narozach. Powod znaleziony w geometrii:
+# "Entrance end wall" i "Window end left" to plaszczyzny o ZEROWEJ
+# gruboscl (y 0..0 oraz 4,12..4,12), a wszystkie styki scian sa dokladne,
+# bez zakladki. Rasteryzator Blendera tego nie pokazuje, Lumen owszem:
+# jednostronna plaszczyzna nie ma czego zapisac w cache powierzchni, wiec
+# slonce przechodzi przez nia wprost, a styk bez zakladki jest szczelina
+# o szerokosci bledu zaokraglenia.
+#
+# Wszystkie poprawki ida NA ZEWNATRZ i W DOL. Zadne lico od strony wnetrza
+# sie nie rusza, wiec zaden wymiar pokoju sie nie zmienia.
+#
+# Czego swiadomie nie ruszam: bryly sciany szczytowej stoja okrakiem na
+# krawedzi podlogi (y 4,06..4,18 przy podlodze konczacej sie na 4,12).
+# Wyrownanie ich wydluzyloby pokoj o 6 cm i przesunelo okno - to decyzja
+# o wymiarze, nie o szczelnosci.
+
+POWLOKA_CEL = {
+    "Entrance end wall":     ((-0.12, 3.02), (-0.12, 0.00), (-0.15, 2.32)),
+    "Window end left":       ((-0.12, 1.215), (4.12, 4.24), (-0.15, 2.32)),
+    "Knee wall":             ((-0.12, 0.00), (-0.12, 4.24), (-0.15, 1.07)),
+    "High wall after door":  ((2.90, 3.02), (1.04, 4.24), (-0.15, 2.32)),
+    "High wall before door": ((2.90, 3.02), (-0.12, 0.12), (-0.15, 2.32)),
+    "Window end right":      ((2.34, 3.02), (4.06, 4.18), (-0.15, 2.32)),
+    "Under gable window":    ((1.21, 2.34), (4.06, 4.18), (-0.15, 0.72)),
+}
+
+
+def bryla(obiekt):
+    punkty = [obiekt.matrix_world @ v.co for v in obiekt.data.vertices]
+    return [(min(p[i] for p in punkty), max(p[i] for p in punkty))
+            for i in range(3)]
+
+
+uszczelnione = []
+for nazwa, cel in POWLOKA_CEL.items():
+    obiekt = bpy.data.objects.get(nazwa)
+    if obiekt is None or obiekt.type != "MESH":
+        continue
+    przed_b = bryla(obiekt)
+    material = obiekt.data.materials[0] if obiekt.data.materials else None
+    plaska = any(abs(g - d) < 0.004 for d, g in przed_b)
+    if plaska:
+        # Plaszczyzny nie da sie rozciagnac przez dimensions - zerowy
+        # wymiar mnozy sie przez cokolwiek i dalej jest zerem.
+        bpy.data.objects.remove(obiekt, do_unlink=True)
+        obiekt = box(nazwa,
+                     tuple((d + g) / 2 for d, g in cel),
+                     tuple(g - d for d, g in cel), material)
+    else:
+        obiekt.dimensions = tuple(g - d for d, g in cel)
+        bpy.context.view_layer.update()
+        nowa = bryla(obiekt)
+        obiekt.location = tuple(
+            obiekt.location[i] + ((cel[i][0] + cel[i][1]) / 2
+                                  - (nowa[i][0] + nowa[i][1]) / 2)
+            for i in range(3))
+    bpy.context.view_layer.update()
+    uszczelnione.append({
+        "element": nazwa,
+        "bylo": [[round(v, 4) for v in os_] for os_ in przed_b],
+        "jest": [[round(v, 4) for v in os_] for os_ in bryla(obiekt)],
+        "bylo_plaskie": plaska,
+    })
+
+
 # --- Sprawdzenie i zapis ------------------------------------------------
 def wymiary(nazwa):
     obiekt = bpy.data.objects.get(nazwa)
@@ -223,6 +289,21 @@ if abs(kontrola["koldra"][1] - KOLDRA_SZEROKOSC) > 0.01:
     bledy.append("szerokosc koldry nie zgadza sie z zalozeniem")
 if kontrola["materac"][:2] != przed.get("Mattress", [0, 0])[:2]:
     bledy.append("materac zostal ruszony, a mial zostac bez zmian")
+
+# Powloka: zadna sciana nie moze byc plaszczyzna, a lica od strony
+# wnetrza musza zostac tam, gdzie byly.
+LICA_WNETRZA = {"Entrance end wall": (1, 1, 0.00), "Window end left": (1, 0, 4.12),
+                "Knee wall": (0, 1, 0.00), "High wall after door": (0, 0, 2.90),
+                "High wall before door": (0, 0, 2.90),
+                "Window end right": (1, 0, 4.06), "Under gable window": (1, 0, 4.06)}
+for wpis in uszczelnione:
+    if min(g - d for d, g in wpis["jest"]) < 0.01:
+        bledy.append("po uszczelnieniu {} nadal jest plaskie".format(wpis["element"]))
+    os_, strona, wartosc = LICA_WNETRZA[wpis["element"]]
+    if abs(wpis["jest"][os_][strona] - wartosc) > 0.001:
+        bledy.append("lico wnetrza {} przesunelo sie na {}".format(
+            wpis["element"], wpis["jest"][os_][strona]))
+kontrola["uszczelniono_elementow"] = len(uszczelnione)
 
 scene["bed_source"] = "gaussian splat scan work/Osowa.ply, 397047 gaussianow"
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT / "Room-attic-v06.blend"))
@@ -258,6 +339,15 @@ raport = {
         "podniesiony_rant": "mapa wysokosci pokazywala jasna obwodke, ale to "
                             "maksimum w pikselu; mediana pasmami od brzegu jest "
                             "plaska z rozrzutem +-8 cm",
+    },
+    "uszczelnienie_powloki": {
+        "powod": "w Unrealu swiatlo z zewnatrz wchodzilo w naroza",
+        "przyczyna": "Entrance end wall i Window end left mialy zerowa grubosc, "
+                     "a styki scian byly dokladne, bez zakladki",
+        "zasada": "wszystko rozciagniete na zewnatrz i w dol; lica wnetrza bez zmian",
+        "nie_ruszone": "bryly sciany szczytowej stoja okrakiem na krawedzi podlogi "
+                       "(y 4,06..4,18 przy podlodze do 4,12) - to decyzja o wymiarze",
+        "elementy": uszczelnione,
     },
     "narzuta_z_mandala": "dodana" if narzuta_dodana else "pominieta (zmiana wygladu, nie wymiaru)",
     "kontrola": kontrola,
