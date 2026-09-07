@@ -1,13 +1,26 @@
 # Integracja Unreal
 
-Projekt `RoomDemo` powstaje z tego samego źródła co wersja przeglądarkowa:
-`datasets/sample/kruszczyki-22/scene.json`. Geometria idzie przez Blendera do
-FBX, a poziom w Unrealu buduje skrypt — nie ma kroku „ktoś kliknął import".
+Poziom `/Game/Room/Maps/L_Room` to **pokój na poddaszu** — rekonstrukcja ze
+zdjęć z `work/scenes/attic-room-v05/Room-attic-v05.blend`, opisana kontraktem
+`datasets/pokoj-poddasze/scene.json`. Geometria idzie przez Blendera do FBX,
+a poziom buduje skrypt — nie ma kroku „ktoś kliknął import".
+
+Mieszkanie demo (Kruszczyki 22) nie zniknęło, tylko nie jest już domyślne:
+buduje się tą samą komendą z innymi parametrami. Poziom jest jeden, więc
+budowa drugiej sceny nadpisuje pierwszą.
 
 ## Jedna komenda
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File unreal\tools\build_unreal.ps1
+```
+
+Mieszkanie demo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File unreal\tools\build_unreal.ps1 `
+    -Blend work\scenes\showcase\main.blend `
+    -Scene datasets\sample\kruszczyki-22\scene.json -Roles ""
 ```
 
 Krok 1 (`blender/scripts/export_unreal.py`) zapisuje `work/unreal/room.fbx`
@@ -29,6 +42,105 @@ Pierwsze podejście bez manifestu dało 241 zasobów zamiast 246 — pięć siat
 nadpisało się nawzajem pod nazwami `Null` i `NONE_005`. Nikt by tego nie
 zauważył na oko.
 
+Import zaczyna od skasowania `/Game/Room/Meshes`. Bez tego siatki poprzedniej
+sceny zostają w projekcie: budowa pokoju (242 obiekty) po mieszkaniu (246)
+zostawiłaby cztery sieroty, a dopasowanie po początku nazwy mogłoby je komuś
+podstawić. Ostatnia budowa skasowała 380 zasobów po mieszkaniu.
+
+## Mapa ról
+
+Blend z rekonstrukcji nie przeszedł przez `build_scene.py`, więc jego obiekty
+nie mają właściwości `role` ani `room_id` — mają za to sensowne nazwy. Rolę
+nadaje im `datasets/pokoj-poddasze/role-map.json`, podawany eksporterowi przez
+`--roles`. Wygrywa **najdłuższy** pasujący prefiks, dzięki czemu `High wall
+skirting` idzie do listwy, a nie do ściany. Co nie pasuje do żadnej reguły,
+zostaje meblem i zachowuje własny materiał: grzejnik, gniazda, łóżko i lampy
+nie zmieniają się z wariantem.
+
+Wynik dla pokoju: podłoga 77, meble 122, ściany 13, sufit 9, stolarka okienna
+9, listwy 4, stolarka drzwiowa 3, szyby 3, skrzydło 2. Razem 242 siatki,
+z czego 120 to powierzchnie przełączane wariantem.
+
+`skirting` doszło przy tej okazji do listy powierzchni w obu skryptach —
+listwa ma własne gniazdo materiałowe w kontrakcie wariantów, więc nie ma
+powodu, żeby w Unrealu była meblem.
+
+## Materiały: tekstura rzutowana ze świata
+
+Dwadzieścia ścian, skosów i ościeżnic w tej scenie **nie ma współrzędnych
+UV** — to płaszczyzny wycięte skryptem, nikt ich nie rozwijał. Zamiast
+dorabiać im UV, `M_RoomSurface` bierze teksturę przez `WorldAlignedTexture`:
+rzut z trzech osi świata, a rozmiar podaje się w centymetrach. Dzięki temu
+`scale_m` w wykończeniu znaczy dokładnie to, co format produktu w katalogu —
+„deska co 1,44 m" to osiem desek po 18 cm, czyli tyle, ile ma deska w scenie.
+
+Wykończenie w `scene.json` może nieść `texture` (nazwa zasobu), `tint`
+(barwienie tekstury, bo mnożenie potrafi tylko przyciemnić) i `normal`.
+Bez `texture` w gnieździe siedzi biała tekstura i zostaje czysty kolor —
+czyli zachowanie sprzed tej zmiany.
+
+**Kierunek tekstury.** W plikach z ambientCG deski leżą poziomo, a w pokoju
+biegną wzdłuż osi Y — wychodziły w poprzek prawdziwych desek. Rzut ze świata
+nie ma wejścia na obrót, więc obraca się sam plik:
+`work/unreal/obroc_deski.py` zapisuje wersje `...rot_...`. Mapa normalnych
+przy obrocie dostaje zamianę kanałów (`nowe R = 255 − G`, `nowe G = R`), bo
+R i G to składowe wektora w płaszczyźnie tekstury i muszą obrócić się razem
+z pikselami.
+
+**Czego tu nie ma:** map normalnych na powierzchniach. Silnik 5.8 nie ma
+`WorldAlignedNormal` (w katalogu `Texturing` są tylko `ScaleUVsByCenter`,
+`TextureCropping` i `WorldAlignedTexture`), a podstawienie zwykłej funkcji
+nie przejdzie — sampler w niej jest kolorowy, mapa normalnych ma inny typ
+i materiał się nie skompiluje. Żeby mieć mikrorelief, trzeba albo napisać
+własną funkcję materiałową, albo rozwinąć UV w Blenderze. Pliki `_Normal`
+są już pobrane i zaimportowane, czekają.
+
+## Skąd biorą się tekstury
+
+Dwa źródła. **Z blenda** — obrazki spakowane w pliku wychodzą razem z FBX
+(`path_mode="COPY"`, `embed_textures=True` w eksporterze) i lądują na
+meblach: splot tapicerki, prążek pościeli, orzech na frontach. Bez tych
+dwóch linii FBX szedł bez ani jednej tekstury i wszystko było płaskim
+kolorem. **Z ambientCG** (CC0) — `work/unreal/pobierz_tekstury.py` ściąga
+kolor, normalne i szorstkość w 1K do `work/textures`, a importer wciąga ten
+katalog przy każdej budowie. `work/` jest poza repozytorium, więc na nowej
+maszynie trzeba je pobrać ponownie tym skryptem.
+
+## Fazowanie krawędzi
+
+Eksporter dokłada każdej bryle fazkę 2,5 mm (modyfikator Bevel, 2 segmenty,
+limit kąta 30°, clamp overlap) i zdejmuje ją zaraz po zapisaniu FBX.
+**Plik .blend zostaje nietknięty** — jest otwierany tylko do odczytu.
+Bez fazki każde pudełko czyta się jak karton, bo matematycznie ostra
+krawędź nie ma czym złapać światła. Clamp overlap pilnuje drobiazgów:
+śrubka 6 mm dostaje fazkę mniejszą, zamiast zwinąć się w kulę.
+Wyłącznik: `--no-bevel`.
+
+## Światło
+
+Wszystko jest dynamiczne (Lumen), nic się nie zapieka.
+
+- **Słońce** 11 lx, 6200 K, `light_source_angle` 1,5° — prawdziwe słońce ma
+  na niebie około pół stopnia i dlatego jego cień ma miękką krawędź. Przy
+  domyślnym punkcie cienie były wycięte nożem.
+- **Niebo** z podglądem w czasie rzeczywistym, dolna półkula **nie czarna** —
+  to ono rozjaśnia cienie. Przy czarnej półkuli wszystko, na co nie pada
+  słońce, było czarne.
+- **Lampa w pomieszczeniu** 600 lm, 3800 K, źródło o realnym rozmiarze
+  (miękki cień), 60 cm pod sufitem. Przy 35 cm świeciła w spody szyn
+  opraw i te rzucały na sufit wielkie ciemne plamy.
+- **Światło okna** — prostokąt w świetle każdego otworu z `openings`,
+  odsunięty 25 cm na zewnątrz, skierowany do środka, 900 lm, 7000 K.
+  Odpowiada temu, że przez szybę świeci całe niebo, a nie tylko wąski snop
+  słońca. Nikt go nie ustawia ręcznie — okno dopisane w kontrakcie od razu
+  dostaje swoje światło.
+- **Ekspozycja** automatyczna z histogramu, bez przesunięcia, plus jakość
+  Lumen podniesiona w PostProcessVolume.
+
+Ciepłota barw ma znaczenie: przy 5600 K słońca wnętrze z brązową podłogą
+wychodziło pomarańczowe, bo ciepłe światło odbija się od ciepłej podłogi
+i barwa mnoży się sama przez siebie.
+
 ## Układy współrzędnych
 
 Przejście Blender → Unreal to odbicie względem płaszczyzny XZ oraz metry na
@@ -42,8 +154,9 @@ centymetry:
 
 Odbicie odwraca skrętność, dlatego zwrot obrotu zmienia znak. Zamiast wierzyć
 temu wyprowadzeniu, importer porównuje bryłę **każdego** obiektu z bryłą
-policzoną w Blenderze. Ostatni pomiar: 246 obiektów, największa różnica
-**0,04 cm**, bryła całej sceny **0,00 cm**.
+policzoną w Blenderze. Ostatni pomiar (pokój, 7 września 2026): 242 obiekty,
+największa różnica **0,01 cm** — i to na deskach podłogowych o grubości
+12 mm. Wcześniejszy pomiar na mieszkaniu: 246 obiektów, 0,04 cm.
 
 ## Sprawdzone zachowania silnika 5.8.2
 
@@ -86,6 +199,12 @@ i `premium`. Przypisania wykończeń liczy ta sama reguła co `resolveFinish()`
 w `web/index.html`: pasuje rola, `room_id` zgadza się albo go nie ma, wygrywa
 ostatnie przypisanie.
 
+W pokoju `basic` to **stan obecny** — kolory odczytane z rekonstrukcji:
+brązowa podłoga, chłodny szary tynk, orzechowe listwy i stolarka. `premium`
+to propozycja jasnego wykończenia, a nie coś, co w pokoju stoi. Ostatnia
+budowa: 120 powierzchni w każdym wariancie, wszystkie 120 różnią się między
+wariantami.
+
 W poziomie stoi `LevelVariantSetsActor`. Przełączenie z kodu:
 
 ```
@@ -103,8 +222,31 @@ to odpowiednik `RoomViewer.setVariant('premium')` w przeglądarce.
 - **Światło jest orientacyjne.** Słońce, niebo, atmosfera i jedna lampa na
   pomieszczenie liczona ze środka ciężkości wielokąta. To nie jest scenografia.
 - **Pixel Streaming nie istnieje.** Ani buildu serwerowego, ani hostingu.
-- Scena źródłowa ma status `draft`; cztery pomieszczenia czekają na
-  potwierdzenie wymiarów, a modele Comforty na ustalenie praw.
+- **Blend pokoju jest poza repozytorium.** `work/` jest w `.gitignore`, więc
+  na nowej maszynie trzeba mieć `Room-attic-v05.blend` albo odtworzyć go
+  skryptami `reconstruct_attic*.py` i `refine_*_v0*.py`. W repozytorium jest
+  tylko opis sceny i mapa ról.
+- **Obrys pokoju to prostokąt.** Ściana kolankowa i skos są w geometrii, ale
+  nie w `polygon_xy_m`, więc lampa i punkt startowy liczą się z prostokąta,
+  a wycena powierzchni ścian z tego pliku wyszłaby za duża.
+- Scena źródłowa ma status `draft`: wymiary są odczytem ze zdjęć, nie
+  pomiarem, a wariant `premium` jest propozycją bez cen i bez zgód.
+
+## Poziom jest wynikiem, nie źródłem
+
+Każda budowa **kasuje i stawia poziom od nowa** — razem z materiałami
+i siatkami. Cokolwiek wyklikasz w edytorze (przesunięta lampa, inna
+intensywność nieba, podmieniony materiał), zniknie przy następnym
+uruchomieniu skryptu. Zmiany, które mają zostać, idą do:
+
+- `datasets/pokoj-poddasze/scene.json` — wykończenia, tekstury, warianty,
+  otwory (a z nich światła okien), obrys, widoki startowe;
+- `datasets/pokoj-poddasze/role-map.json` — co jest ścianą, a co meblem;
+- `unreal/tools/import_scene.py` — światła, materiał bazowy, ekspozycja;
+- sam `.blend` — geometria.
+
+Edytor jest do oglądania i do sprawdzania wartości. Jak coś w nim wyjdzie
+lepiej niż w skrypcie, trzeba tę liczbę przepisać do skryptu.
 
 ## Co jest w repozytorium
 

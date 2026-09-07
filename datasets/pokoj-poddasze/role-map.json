@@ -1,0 +1,43 @@
+{
+ "map_version": 1,
+ "scene_id": "pokoj-poddasze",
+ "room_id": "poddasze",
+ "default_role": "furniture",
+ "note": "Blend z rekonstrukcji nie ma wlasciwosci role/room_id, bo nie powstal z build_scene.py. Ten plik nadaje role po nazwach obiektow. Wygrywa najdluzszy pasujacy prefiks, wiec 'High wall skirting' idzie do listwy, a nie do sciany.",
+ "rules": [
+  {"prefix": "Floor slab", "role": "floor"},
+  {"prefix": "Staggered wood board", "role": "floor"},
+
+  {"prefix": "Knee wall", "role": "wall"},
+  {"prefix": "High wall", "role": "wall"},
+  {"prefix": "Entrance end wall", "role": "wall"},
+  {"prefix": "Window end", "role": "wall"},
+  {"prefix": "Above gable window", "role": "wall"},
+  {"prefix": "Under gable window", "role": "wall"},
+  {"prefix": "Gable window reveal", "role": "wall"},
+
+  {"prefix": "Entrance skirting", "role": "skirting"},
+  {"prefix": "High wall skirting", "role": "skirting"},
+  {"prefix": "Knee skirting", "role": "skirting"},
+  {"prefix": "Window skirting", "role": "skirting"},
+
+  {"prefix": "Flat ceiling", "role": "ceiling"},
+  {"prefix": "Sloping ceiling", "role": "ceiling"},
+  {"prefix": "Skylight reveal", "role": "ceiling"},
+
+  {"prefix": "Gable glass", "role": "glass"},
+  {"prefix": "Skylight glass", "role": "glass"},
+  {"prefix": "Door arched frosted glass", "role": "glass"},
+
+  {"prefix": "Gable window jamb", "role": "frame_window"},
+  {"prefix": "Gable window rail", "role": "frame_window"},
+  {"prefix": "Skylight timber frame", "role": "frame_window"},
+  {"prefix": "Window sill", "role": "frame_window"},
+
+  {"prefix": "Door frame", "role": "frame_door"},
+  {"prefix": "Door lintel", "role": "frame_door"},
+
+  {"prefix": "Door leaf", "role": "leaf"},
+  {"prefix": "Door lower raised panel", "role": "leaf"}
+ ]
+}

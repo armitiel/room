@@ -20,12 +20,15 @@ import unreal
 ROOT = "/Game/Room"
 P_MESHES = ROOT + "/Meshes"
 P_MATERIALS = ROOT + "/Materials"
+P_TEXTURES = ROOT + "/Textures"
 P_MAPS = ROOT + "/Maps"
 LEVEL_PATH = P_MAPS + "/L_Room"
 
 M_TO_UU = 100.0
-SURFACE_ROLES = ("floor", "wall", "ceiling", "frame_window", "frame_door",
-                 "glass", "leaf")
+# Ta sama lista co w blender/scripts/export_unreal.py - listwa jest
+# powierzchnia budowlana, wiec zmienia sie razem z wykonczeniem.
+SURFACE_ROLES = ("floor", "wall", "ceiling", "skirting", "frame_window",
+                 "frame_door", "glass", "leaf")
 
 report = {"steps": [], "problems": [], "notes": []}
 
@@ -85,6 +88,47 @@ def resolve_finish(variant, role, room_id):
 
 
 # --- import FBX --------------------------------------------------------
+
+def try_set(obj, name, value):
+    """Ustawia wlasciwosc, jesli ta wersja silnika ja ma.
+
+    Nazwy wlasciwosci swiatel i post-processu roznia sie miedzy wersjami
+    silnika. Zamiast wywalac cala budowe na jednej literowce, zapisujemy
+    w raporcie, czego nie udalo sie ustawic - scena powstanie, tylko bez
+    tego jednego ustawienia.
+    """
+    try:
+        obj.set_editor_property(name, value)
+        return True
+    except Exception as error:  # noqa: BLE001 - kazdy powod jest ciekawy
+        report.setdefault("pominiete_wlasciwosci", []).append(
+            "{}: {}".format(name, error))
+        return False
+
+
+def clean_meshes():
+    """Kasuje siatki z poprzedniej budowy, zanim wejdzie nowy FBX.
+
+    Import nadpisuje zasoby o tych samych identyfikatorach, ale scena
+    z mniejsza liczba obiektow zostawia sieroty: S0200 z mieszkania
+    przezylby budowe pokoju i nikt by nie wiedzial, skad ta siatka jest.
+    Gorzej - dopasowanie po poczatku nazwy w index_meshes() moglo by ja
+    komus podstawic. Poziom i tak powstaje od zera, wiec nie ma czego
+    zachowywac.
+
+    Materialy leca razem z siatkami. Sa w calosci wyliczone z scene.json,
+    a _create() zwraca istniejacy zasob bez zmian - wiec bez kasowania
+    poprawka w materiale bazowym nie doszlaby do sceny nigdy.
+    """
+    usuniete = {}
+    for katalog in (P_MESHES, P_MATERIALS):
+        if not unreal.EditorAssetLibrary.does_directory_exist(katalog):
+            continue
+        usuniete[katalog] = len(
+            unreal.EditorAssetLibrary.list_assets(katalog, recursive=True))
+        unreal.EditorAssetLibrary.delete_directory(katalog)
+    step("czyszczenie", usunieto=usuniete)
+
 
 def import_fbx(fbx_path):
     """Import kazdej siatki osobno, w jej wlasnym ukladzie.
@@ -180,6 +224,141 @@ def _create(name, path, cls, factory):
         name, path, cls, factory)
 
 
+WORLD_ALIGNED = ("/Engine/Functions/Engine_MaterialFunctions01/Texturing/"
+                 "WorldAlignedTexture.WorldAlignedTexture")
+WORLD_ALIGNED_NORMAL = ("/Engine/Functions/Engine_MaterialFunctions01/Texturing/"
+                        "WorldAlignedNormal.WorldAlignedNormal")
+WHITE_TEXTURE = "/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture"
+# Nazwa wejscia rozmiaru zawiera w sobie typ i rozni sie miedzy wersjami
+# silnika, a python nie pozwala odczytac listy wejsc funkcji. Probujemy po
+# kolei; w 5.8 przechodzi "TextureSize".
+WEJSCIA_ROZMIARU = ("TextureSize (V3)", "TextureSize", "WorldSize (V3)",
+                    "WorldSize")
+
+
+def world_aligned_normal(material, lib, rozmiar):
+    """Mapa normalnych rzutowana tak samo jak kolor.
+
+    Bez niej tynk i drewno sa gladkie jak szklo: kolor sie zgadza, ale
+    swiatlo slizga sie po plaskiej plaszczyznie i wszystko czyta sie jak
+    wydruk. Mapa normalnych daje mikroreliefe - to ona sprawia, ze tynk
+    wyglada jak tynk.
+
+    Suwak "UseNormal" jest po to, zeby wykonczenie bez mapy nie dostalo
+    smieci: przy zerze mieszanie zwraca czysta normalna plaszczyzny.
+    """
+    funkcja = unreal.EditorAssetLibrary.load_asset(WORLD_ALIGNED_NORMAL)
+    biala = unreal.EditorAssetLibrary.load_asset(WHITE_TEXTURE)
+    if funkcja is None or biala is None:
+        # Sprawdzone w 5.8: w katalogu Texturing sa tylko ScaleUVsByCenter,
+        # TextureCropping i WorldAlignedTexture - funkcji do map normalnych
+        # ten silnik nie ma. Podstawienie zwyklej WorldAlignedTexture nie
+        # przejdzie, bo sampler w niej jest kolorowy, a mapa normalnych ma
+        # inny typ i material sie nie skompiluje. Zeby miec relief, trzeba
+        # albo napisac wlasna funkcje, albo rozwinac UV w Blenderze.
+        note("Ten silnik nie ma WorldAlignedNormal - powierzchnie dostaja "
+             "kolor i szorstkosc, bez mikroreliefu")
+        return False
+    tekstura = lib.create_material_expression(
+        material, unreal.MaterialExpressionTextureObjectParameter, -1150, 260)
+    tekstura.set_editor_property("parameter_name", "NormalTexture")
+    tekstura.set_editor_property("texture", biala)
+    suwak = lib.create_material_expression(
+        material, unreal.MaterialExpressionScalarParameter, -1150, 460)
+    suwak.set_editor_property("parameter_name", "UseNormal")
+    suwak.set_editor_property("default_value", 0.0)
+    plaska = lib.create_material_expression(
+        material, unreal.MaterialExpressionConstant3Vector, -820, 460)
+    plaska.set_editor_property("constant", unreal.LinearColor(0.0, 0.0, 1.0, 1.0))
+    wezel = lib.create_material_expression(
+        material, unreal.MaterialExpressionMaterialFunctionCall, -820, 260)
+    wezel.set_material_function(funkcja)
+    mieszanie = lib.create_material_expression(
+        material, unreal.MaterialExpressionLinearInterpolate, -300, 300)
+
+    for skad, wyjscie, dokad, wejscie in (
+        (tekstura, "", wezel, "TextureObject"),
+        (plaska, "", mieszanie, "A"),
+        (wezel, "XYZ Texture", mieszanie, "B"),
+        (suwak, "", mieszanie, "Alpha"),
+    ):
+        if not lib.connect_material_expressions(skad, wyjscie, dokad, wejscie):
+            note("Mapa normalnych: nie udalo sie polaczyc {} w {}".format(
+                wejscie, material.get_name()))
+            return False
+    for kandydat in WEJSCIA_ROZMIARU:
+        if lib.connect_material_expressions(rozmiar, "", wezel, kandydat):
+            break
+    return lib.connect_material_property(
+        mieszanie, "", unreal.MaterialProperty.MP_NORMAL)
+
+
+def world_aligned_color(material, lib, color):
+    """Tekstura rzutowana ze wspolrzednych swiata, bez UV.
+
+    Dwadziescia scian, skosow i oscienic w tej scenie nie ma wspolrzednych UV
+    w ogole - to plaszczyzny wyciete skryptem, nikt ich nie rozwijal. Zamiast
+    dorabiac im UV, bierzemy teksture rzutowana z trzech osi: jej rozmiar
+    podaje sie w centymetrach swiata, wiec "deska co 120 cm" znaczy tu
+    dokladnie to samo, co format produktu w katalogu.
+
+    Gdy wykonczenie nie ma tekstury, w gniezdzie siedzi biala i mnozenie
+    zostawia czysty kolor - czyli to, co bylo wczesniej.
+    """
+    funkcja = unreal.EditorAssetLibrary.load_asset(WORLD_ALIGNED)
+    biala = unreal.EditorAssetLibrary.load_asset(WHITE_TEXTURE)
+    if funkcja is None or biala is None:
+        note("Brak WorldAlignedTexture albo bialej tekstury - wykonczenia "
+             "zostaja plaskim kolorem")
+        return False
+    tekstura = lib.create_material_expression(
+        material, unreal.MaterialExpressionTextureObjectParameter, -1150, -200)
+    tekstura.set_editor_property("parameter_name", "BaseTexture")
+    tekstura.set_editor_property("texture", biala)
+    rozmiar = lib.create_material_expression(
+        material, unreal.MaterialExpressionScalarParameter, -1150, 20)
+    rozmiar.set_editor_property("parameter_name", "TextureSize")
+    rozmiar.set_editor_property("default_value", 120.0)
+    wezel = lib.create_material_expression(
+        material, unreal.MaterialExpressionMaterialFunctionCall, -820, -140)
+    wezel.set_material_function(funkcja)
+    mnozenie = lib.create_material_expression(
+        material, unreal.MaterialExpressionMultiply, -300, -140)
+
+    udalo = True
+    for skad, wyjscie, dokad, wejscie in (
+        (tekstura, "", wezel, "TextureObject"),
+        (wezel, "XYZ Texture", mnozenie, "A"),
+        (color, "", mnozenie, "B"),
+    ):
+        if not lib.connect_material_expressions(skad, wyjscie, dokad, wejscie):
+            note("Nie udalo sie polaczyc {} -> {} w materiale {}".format(
+                wyjscie or "wyjscie", wejscie, material.get_name()))
+            udalo = False
+    if not udalo:
+        return False
+
+    # Nazwa wejscia rozmiaru zawiera w sobie typ i rozni sie miedzy wersjami
+    # silnika ("TextureSize (V3)" kontra "WorldSize"), a python nie pozwala
+    # odczytac listy wejsc funkcji. Probujemy po kolei; jesli zadna nie
+    # pasuje, funkcja uzyje swojej wartosci domyslnej - tekstura bedzie, tylko
+    # w innej skali, i o tym mowi uwaga w raporcie.
+    for kandydat in WEJSCIA_ROZMIARU:
+        if lib.connect_material_expressions(rozmiar, "", wezel, kandydat):
+            step("rozmiar_tekstury", material=material.get_name(),
+                 wejscie=kandydat)
+            break
+    else:
+        note("Nie znalazlem wejscia rozmiaru w WorldAlignedTexture - skala "
+             "tekstur zostaje domyslna dla materialu {}".format(
+                 material.get_name()))
+    if not world_aligned_normal(material, lib, rozmiar):
+        note("Material {} zostaje bez map normalnych".format(
+            material.get_name()))
+    return lib.connect_material_property(
+        mnozenie, "", unreal.MaterialProperty.MP_BASE_COLOR)
+
+
 def base_material(name, translucent=False):
     """Jeden material z parametrami; wykonczenia to jego instancje.
 
@@ -194,12 +373,21 @@ def base_material(name, translucent=False):
                        unreal.MaterialFactoryNew())
     lib = unreal.MaterialEditingLibrary
 
+    # Sciany, sufit i skosy w rekonstrukcji ze zdjec to plaszczyzny o zerowej
+    # grubosci - jedna warstwa trojkatow. Silnik domyslnie rysuje tylko
+    # przednia strone, wiec od srodka pokoju polowa scian po prostu znikala
+    # i bylo widac niebo. Dwustronny material to naprawia; kosztuje tyle, ze
+    # scena rysuje obie strony kazdej plaszczyzny.
+    material.set_editor_property("two_sided", True)
+
     color = lib.create_material_expression(
         material, unreal.MaterialExpressionVectorParameter, -520, -100)
     color.set_editor_property("parameter_name", "BaseColor")
     color.set_editor_property("default_value",
                               unreal.LinearColor(0.75, 0.74, 0.72, 1.0))
-    lib.connect_material_property(color, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    if not world_aligned_color(material, lib, color):
+        lib.connect_material_property(color, "",
+                                      unreal.MaterialProperty.MP_BASE_COLOR)
 
     rough = lib.create_material_expression(
         material, unreal.MaterialExpressionScalarParameter, -520, 120)
@@ -227,7 +415,66 @@ def base_material(name, translucent=False):
     return material
 
 
-def finish_instance(variant_id, finish_id, finish, opaque, glass):
+def import_textures(folder):
+    """Wciaga pliki tekstur z dysku do projektu.
+
+    Tekstury z blenda przychodza same, zaszyte w FBX. To sa te dobrane
+    osobno - CC0 z ambientCG - i leza poza projektem, zeby nie puchl.
+    Mapy normalnych dostaja wlasciwe ustawienia kompresji; bez tego silnik
+    traktuje je jak zwykly obrazek i powierzchnia wychodzi niebieskawa.
+    """
+    if not folder or not os.path.isdir(folder):
+        return
+    pliki = []
+    for korzen, _, nazwy in os.walk(folder):
+        for nazwa in nazwy:
+            if nazwa.lower().endswith((".jpg", ".jpeg", ".png", ".tga")):
+                pliki.append(os.path.join(korzen, nazwa))
+    if not pliki:
+        return
+    zadania = []
+    for sciezka in pliki:
+        zadanie = unreal.AssetImportTask()
+        zadanie.set_editor_property("filename", sciezka)
+        zadanie.set_editor_property("destination_path", P_TEXTURES)
+        zadanie.set_editor_property("automated", True)
+        zadanie.set_editor_property("replace_existing", True)
+        zadanie.set_editor_property("save", False)
+        zadania.append(zadanie)
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks(zadania)
+
+    poprawione = 0
+    for data in unreal.AssetRegistryHelpers.get_asset_registry() \
+            .get_assets_by_path(P_TEXTURES, recursive=True):
+        asset = data.get_asset()
+        if not isinstance(asset, unreal.Texture2D):
+            continue
+        nazwa = asset.get_name()
+        if "Normal" in nazwa:
+            try_set(asset, "compression_settings",
+                    unreal.TextureCompressionSettings.TC_NORMALMAP)
+            try_set(asset, "srgb", False)
+            poprawione += 1
+        elif "Roughness" in nazwa or "Displacement" in nazwa:
+            try_set(asset, "srgb", False)
+            poprawione += 1
+    step("import_tekstur", katalog=folder, plikow=len(pliki),
+         poprawione_mapy=poprawione)
+
+
+def index_textures():
+    """Mapa nazwa zasobu -> Texture2D, ze wszystkiego, co przyszlo z FBX."""
+    registry = unreal.AssetRegistryHelpers.get_asset_registry()
+    znalezione = {}
+    for data in registry.get_assets_by_path(ROOT, recursive=True):
+        asset = data.get_asset()
+        if isinstance(asset, unreal.Texture2D):
+            znalezione[asset.get_name()] = asset
+    step("tekstury", znalezione=sorted(znalezione))
+    return znalezione
+
+
+def finish_instance(variant_id, finish_id, finish, opaque, glass, tekstury):
     name = "MI_{}_{}".format(variant_id, finish_id).replace("-", "_")
     full = "{}/{}".format(P_MATERIALS, name)
     existed = unreal.EditorAssetLibrary.does_asset_exist(full)
@@ -237,8 +484,42 @@ def finish_instance(variant_id, finish_id, finish, opaque, glass):
     has_opacity = "opacity" in finish
     if not existed:
         lib.set_material_instance_parent(instance, glass if has_opacity else opaque)
-    lib.set_material_instance_vector_parameter_value(
-        instance, "BaseColor", hex_to_linear(finish.get("color", "#cccccc")))
+
+    # Tekstura niesie wlasny kolor, wiec mnozenie zostawiamy neutralne -
+    # inaczej barwa zastepcza przyciemnilaby zdjecie drugi raz.
+    nazwa_tekstury = str(finish.get("texture", ""))
+    tekstura = tekstury.get(nazwa_tekstury) if nazwa_tekstury else None
+    if nazwa_tekstury and tekstura is None:
+        note("Wykonczenie {} prosi o teksture {}, ktorej nie ma w projekcie"
+             .format(finish_id, nazwa_tekstury))
+    if tekstura is not None:
+        lib.set_material_instance_texture_parameter_value(
+            instance, "BaseTexture", tekstura)
+        # Bez barwienia mnozymy przez biel, czyli zostawiamy teksture taka,
+        # jaka jest. "tint" sluzy do tego, zeby ta sama deska mogla byc raz
+        # ciemniejsza, raz jasniejsza - bez trzymania dwoch plikow.
+        lib.set_material_instance_vector_parameter_value(
+            instance, "BaseColor",
+            hex_to_linear(finish["tint"]) if finish.get("tint")
+            else unreal.LinearColor(1.0, 1.0, 1.0, 1.0))
+    else:
+        lib.set_material_instance_vector_parameter_value(
+            instance, "BaseColor", hex_to_linear(finish.get("color", "#cccccc")))
+    mapa = tekstury.get(str(finish.get("normal", ""))) if finish.get("normal") else None
+    if mapa is not None:
+        lib.set_material_instance_texture_parameter_value(
+            instance, "NormalTexture", mapa)
+        lib.set_material_instance_scalar_parameter_value(
+            instance, "UseNormal", 1.0)
+    else:
+        lib.set_material_instance_scalar_parameter_value(
+            instance, "UseNormal", 0.0)
+        if finish.get("normal"):
+            note("Wykonczenie {} prosi o mape normalnych {}, ktorej nie ma"
+                 .format(finish_id, finish.get("normal")))
+    # scale_m to realny format produktu: deska co 1,2 m, plytka co 0,3 m.
+    lib.set_material_instance_scalar_parameter_value(
+        instance, "TextureSize", float(finish.get("scale_m", 1.2)) * M_TO_UU)
     lib.set_material_instance_scalar_parameter_value(
         instance, "Roughness", float(finish.get("roughness", 0.8)))
     lib.set_material_instance_scalar_parameter_value(instance, "Metallic", 0.0)
@@ -348,6 +629,33 @@ def scale_meshes_to_cm(meshes, sprawdzian):
     return False
 
 
+def distance_fields_two_sided(meshes):
+    """Pola odleglosci liczone tak, jakby siatki mialy grubosc.
+
+    Lumen szuka geometrii po polach odleglosci. Plaszczyzna bez grubosci ma
+    takie pole prawie zerowe, wiec slonce swieci przez sciane i wnetrze
+    dostaje plamy zamiast cienia. Ta flaga kaze silnikowi liczyc pole tak,
+    jakby plaszczyzna byla zamknieta bryla.
+    """
+    api = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem) \
+        or getattr(unreal, "EditorStaticMeshLibrary", None)
+    if api is None:
+        note("Brak API ustawien budowy siatek - pola odleglosci zostaja "
+             "jednostronne, Lumen moze przeswiecac przez sciany")
+        return False
+    for mesh in meshes:
+        try:
+            settings = api.get_lod_build_settings(mesh, 0)
+            settings.set_editor_property(
+                "generate_distance_field_as_if_two_sided", True)
+            api.set_lod_build_settings(mesh, 0, settings)
+        except Exception as error:  # noqa: BLE001
+            note("Pola odleglosci dwustronne nie weszly: {}".format(error))
+            return False
+    step("pola_odleglosci", dwustronne=len(meshes))
+    return True
+
+
 def entry_transform(entry, scale_factor=1.0):
     """Transformacja obiektu z manifestu, przelozona na uklad Unreala.
 
@@ -388,21 +696,109 @@ def ensure_collision(mesh):
     return True
 
 
+def spawn_window_lights(actors, editor, scene):
+    """Prostokatne swiatlo tuz za kazdym oknem i drzwiami zewnetrznymi.
+
+    Samo slonce wpada waskim snopem, a reszta okna jest tylko jasna dziura -
+    w prawdziwym pokoju swieci cale niebo widoczne przez szybe, na calej
+    powierzchni otworu. Dlatego w swietle otworu staje prostokat o jego
+    wymiarach, odsuniety na zewnatrz i skierowany do srodka.
+
+    Pozycje bierzemy z "openings" w scene.json, wiec nikt nie ustawia tego
+    recznie - okno dodane w kontrakcie od razu dostaje swoje swiatlo.
+    """
+    import math
+    postawione = []
+    for room in scene.get("rooms", []):
+        polygon = room.get("polygon_xy_m") or []
+        if len(polygon) < 3:
+            continue
+        for opening in room.get("openings", []):
+            if opening.get("kind") not in ("window",):
+                continue
+            i = int(opening.get("wall_index", 0)) % len(polygon)
+            poczatek = polygon[i]
+            koniec = polygon[(i + 1) % len(polygon)]
+            dx, dy = koniec[0] - poczatek[0], koniec[1] - poczatek[1]
+            dlugosc = math.hypot(dx, dy)
+            if dlugosc < 1e-6:
+                continue
+            dx, dy = dx / dlugosc, dy / dlugosc
+            szerokosc = float(opening.get("width_m", 1.0))
+            wzdluz = float(opening.get("offset_m", 0.0)) + szerokosc / 2.0
+            sx = poczatek[0] + dx * wzdluz
+            sy = poczatek[1] + dy * wzdluz
+            # Obrys jest zapisany przeciwnie do ruchu wskazowek zegara, wiec
+            # normalna na zewnatrz to (dy, -dx). Odsuwamy swiatlo 25 cm za
+            # lico sciany, zeby nie swiecilo od srodka w oscieznice.
+            nx, ny = dy, -dx
+            sx += nx * 0.25
+            sy += ny * 0.25
+            wysokosc = float(opening.get("height_m", 1.2))
+            srodek_z = float(opening.get("sill_m", 0.0)) + wysokosc / 2.0
+            yaw = math.degrees(math.atan2(ny, -nx))
+            swiatlo = editor.spawn_actor_from_class(
+                unreal.RectLight, plan_to_ue(sx, sy, srodek_z),
+                unreal.Rotator(0.0, 0.0, yaw))
+            swiatlo.set_actor_label("Swiatlo okna {}".format(room.get("id", "?")))
+            komponent = swiatlo.rect_light_component
+            try_set(komponent, "mobility", unreal.ComponentMobility.MOVABLE)
+            try_set(komponent, "intensity_units", unreal.LightUnits.LUMENS)
+            # Subtelnie: to ma wypelnic otwor swiatlem nieba, a nie zrobic
+            # z okna reflektora.
+            try_set(komponent, "intensity", 900.0)
+            try_set(komponent, "use_temperature", True)
+            try_set(komponent, "temperature", 7000.0)
+            try_set(komponent, "source_width", szerokosc * M_TO_UU)
+            try_set(komponent, "source_height", wysokosc * M_TO_UU)
+            try_set(komponent, "attenuation_radius", 900.0)
+            try_set(komponent, "barn_door_angle", 80.0)
+            actors.append(swiatlo)
+            postawione.append({"pokoj": room.get("id"),
+                               "otwor": opening.get("kind"),
+                               "szerokosc_m": szerokosc})
+    step("swiatla_okien", postawione=postawione)
+
+
 def spawn_lights(actors, scene):
     editor = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     sun = editor.spawn_actor_from_class(
         unreal.DirectionalLight, unreal.Vector(0, 0, 900),
         unreal.Rotator(0, -42, -140))
     sun.set_actor_label("Slonce")
-    sun.light_component.set_editor_property("intensity", 6.0)
-    sun.light_component.set_editor_property("mobility", unreal.ComponentMobility.MOVABLE)
+    slonce = sun.light_component
+    try_set(slonce, "intensity", 11.0)
+    try_set(slonce, "mobility", unreal.ComponentMobility.MOVABLE)
+    try_set(slonce, "use_temperature", True)
+    # 6200 K to swiatlo dnia z lekka domieszka nieba. Przy 5600 K wnetrze
+    # z brazowa podloga wychodzilo pomaranczowe, bo cieple swiatlo odbija
+    # sie od cieplej podlogi i barwa mnozy sie sama przez siebie.
+    try_set(slonce, "temperature", 6200.0)
+    # Ostry, czarny cien bierze sie stad, ze slonce jest matematycznym
+    # punktem. Prawdziwe zajmuje na niebie okolo pol stopnia i dlatego cien
+    # ma miekka krawedz. Wieksza wartosc = szersza polcien; 1,5 stopnia
+    # wyglada jak lekko zamglony dzien, a nie jak noz.
+    try_set(slonce, "light_source_angle", 1.5)
+    try_set(slonce, "light_source_soft_angle", 0.6)
     actors.append(sun)
 
     sky = editor.spawn_actor_from_class(unreal.SkyLight, unreal.Vector(0, 0, 900))
     sky.set_actor_label("Niebo")
-    sky.light_component.set_editor_property("real_time_capture", True)
-    sky.light_component.set_editor_property("intensity", 1.0)
-    sky.light_component.set_editor_property("mobility", unreal.ComponentMobility.MOVABLE)
+    niebo = sky.light_component
+    try_set(niebo, "real_time_capture", True)
+    # 7.0 i ta barwa to wartosci dobrane recznie w edytorze przez
+    # uzytkownika (7 wrzesnia 2026) i odczytane z zapisanego poziomu.
+    # Skrypt buduje poziom od zera, wiec zeby nie zginely, musza byc tutaj.
+    # Odbarwione, lekko zielonkawe niebo daje cien szary zamiast granatowego.
+    try_set(niebo, "intensity", 7.0)
+    try_set(niebo, "light_color", unreal.Color(r=182, g=191, b=182, a=255))
+    try_set(niebo, "mobility", unreal.ComponentMobility.MOVABLE)
+    # Dolna polkula domyslnie jest czarna, wiec wnetrze nie dostaje nic od
+    # ziemi. To wlasnie to swiatlo rozjasnia cienie w pokoju - bez niego
+    # wszystko, na co nie pada slonce, jest czarne.
+    try_set(niebo, "lower_hemisphere_is_black", False)
+    try_set(niebo, "lower_hemisphere_color",
+            unreal.LinearColor(0.14, 0.13, 0.12, 1.0))
     actors.append(sky)
 
     atmosphere = editor.spawn_actor_from_class(unreal.SkyAtmosphere,
@@ -419,16 +815,30 @@ def spawn_lights(actors, scene):
         cx = sum(p[0] for p in polygon) / len(polygon)
         cy = sum(p[1] for p in polygon) / len(polygon)
         height = float(room.get("height_m", 2.7))
+        # 35 cm pod sufitem lampa swiecila w spody szyn i opraw wiszacych
+        # przy suficie, a te rzucaly na sufit wielkie ciemne plamy. 60 cm
+        # nizej to nadal wysokosc zyrandola, a cien opraw robi sie maly.
         lamp = editor.spawn_actor_from_class(
-            unreal.PointLight, plan_to_ue(cx, cy, height - 0.35))
+            unreal.PointLight, plan_to_ue(cx, cy, height - 0.6))
         lamp.set_actor_label("Lampa {}".format(room.get("id", "?")))
         component = lamp.point_light_component
-        component.set_editor_property("mobility", unreal.ComponentMobility.MOVABLE)
-        component.set_editor_property("intensity", 900.0)
-        component.set_editor_property("attenuation_radius", 600.0)
-        component.set_editor_property("source_radius", 12.0)
-        component.set_editor_property("cast_shadows", True)
+        try_set(component, "mobility", unreal.ComponentMobility.MOVABLE)
+        # Lumeny zamiast liczby bez jednostki. 600 lm to zarowka LED okolo
+        # 6 W - w dzien ma dopelniac, a nie przebijac okno. Przy 1400 lm
+        # i 3000 K caly pokoj wychodzil pomaranczowy.
+        try_set(component, "intensity_units", unreal.LightUnits.LUMENS)
+        try_set(component, "intensity", 600.0)
+        try_set(component, "use_temperature", True)
+        try_set(component, "temperature", 3800.0)
+        try_set(component, "attenuation_radius", 700.0)
+        # Zarowka ma rozmiar, wiec jej cien tez ma miekka krawedz. Punktowe
+        # zrodlo daje cien wyciety nozem - to samo, co przy sloncu.
+        try_set(component, "source_radius", 8.0)
+        try_set(component, "soft_source_radius", 25.0)
+        try_set(component, "cast_shadows", True)
         actors.append(lamp)
+
+    spawn_window_lights(actors, editor, scene)
 
     # Bez tego pierwszy przebieg wyszedl calkiem przeswietlony: przy
     # wylaczonej automatycznej ekspozycji jasnosc jest stala, a wnetrze
@@ -441,14 +851,29 @@ def spawn_lights(actors, scene):
     settings = volume.get_editor_property("settings")
     for nazwa, wartosc in (
         ("auto_exposure_method", unreal.AutoExposureMethod.AEM_HISTOGRAM),
-        ("auto_exposure_min_brightness", 0.05),
-        ("auto_exposure_max_brightness", 8.0),
-        ("auto_exposure_speed_up", 4.0),
-        ("auto_exposure_speed_down", 4.0),
+        ("auto_exposure_min_brightness", 0.03),
+        ("auto_exposure_max_brightness", 6.0),
+        ("auto_exposure_speed_up", 3.0),
+        ("auto_exposure_speed_down", 1.0),
+        # Zero, bo przy +0,6 sciany i posciel wychodzily przepalone na bialo.
         ("auto_exposure_bias", 0.0),
+        # Lumen liczy swiatlo odbite. Bez niego swieci tylko to, na co pada
+        # promien wprost, a kazdy cien jest czarna dziura - dokladnie to
+        # bylo widac na zrzutach.
+        ("dynamic_global_illumination_method",
+         unreal.DynamicGlobalIlluminationMethod.LUMEN),
+        ("reflection_method", unreal.ReflectionMethod.LUMEN),
+        ("lumen_scene_lighting_quality", 2.0),
+        ("lumen_scene_detail", 2.0),
+        ("lumen_final_gather_quality", 2.0),
+        # Pokoj ma 4 m, wiec dalekie promienie sa marnowane; 20 m wystarcza
+        # z zapasem na to, co widac przez okno.
+        ("lumen_max_trace_distance", 2000.0),
+        ("ambient_occlusion_intensity", 0.4),
+        ("bloom_intensity", 0.35),
     ):
-        settings.set_editor_property("override_" + nazwa, True)
-        settings.set_editor_property(nazwa, wartosc)
+        try_set(settings, "override_" + nazwa, True)
+        try_set(settings, nazwa, wartosc)
     volume.set_editor_property("settings", settings)
     actors.append(volume)
     return actors
@@ -562,8 +987,11 @@ def main():
     report["manifest"] = {k: manifest[k] for k in
                           ("scene_id", "fbx_sha256", "mesh_count", "size_m")}
     report["scene_status"] = scene.get("status")
+    report["scene_id"] = scene.get("scene_id")
 
+    clean_meshes()
     import_fbx(manifest["fbx"])
+    import_textures(os.environ.get("ROOM_TEXTURES", ""))
     meshes = index_meshes([entry["id"] for entry in manifest["meshes"]])
     wzorzec = next((e for e in manifest["meshes"] if e["id"] in meshes), None)
     sprawdzian = (meshes[wzorzec["id"]],
@@ -573,6 +1001,7 @@ def main():
                                                       sprawdzian)
     scale_factor = 1.0 if w_siatkach else M_TO_UU
     step("skala", w_siatkach=w_siatkach, mnoznik_aktora=scale_factor)
+    distance_fields_two_sided(list(meshes.values()))
 
     level = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
     editor = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
@@ -592,11 +1021,12 @@ def main():
     opaque = base_material("M_RoomSurface")
     glass = base_material("M_RoomGlass", translucent=True)
     finishes = scene.get("finishes") or {}
+    tekstury = index_textures()
     instances = {}
     for definition in scene.get("variants", []):
         for finish_id, finish in finishes.items():
             instances[(definition["id"], finish_id)] = finish_instance(
-                definition["id"], finish_id, finish, opaque, glass)
+                definition["id"], finish_id, finish, opaque, glass, tekstury)
     step("materialy", instancji=len(instances), wykonczen=len(finishes))
 
     default_variant = (scene.get("variants") or [{}])[0].get("id")
@@ -625,6 +1055,10 @@ def main():
                                   False, False)
         actor.set_actor_label("{} {}".format(entry["id"], entry["blender_name"]))
         actor.set_folder_path("Room/{}".format(entry["role"]))
+        if entry["role"] == "glass":
+            # Szyba jest przezroczysta, ale jej cien w Lumenie jest pelny -
+            # okno rzucaloby na podloge ciemny prostokat zamiast swiatla.
+            try_set(actor.static_mesh_component, "cast_shadow", False)
         spawned.append(actor)
         placed.append((entry, actor))
         if entry["kind"] != "surface":

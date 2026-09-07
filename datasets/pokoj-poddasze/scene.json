@@ -1,0 +1,115 @@
+{
+ "schema_version": "0.1",
+ "scene_id": "pokoj-poddasze",
+ "units": "m",
+ "coordinate_system": "right_handed_z_up",
+ "status": "draft",
+ "sources": [
+  {
+   "kind": "photo_reconstruction",
+   "author": "wlasciciel pokoju",
+   "retrieved": "2026-09-07",
+   "note": "Geometria pochodzi z work/scenes/attic-room-v05/Room-attic-v05.blend - rekonstrukcji ze zdjec i nagrania, robionej skryptami blender/scripts/reconstruct_attic*.py oraz refine_*_v0*.py. Wymiary sa odczytem ze zdjec, nie pomiarem tasma."
+  },
+  {
+   "kind": "texture_library",
+   "publisher": "ambientCG",
+   "url": "https://ambientcg.com",
+   "retrieved": "2026-09-07",
+   "rights": "CC0 - biblioteka ambientCG wydaje wszystkie materialy jako domena publiczna, wiec wolno ich uzyc w scenie pokazywanej klientowi bez pytania o zgode.",
+   "assets": ["WoodFloor007", "WoodFloor033", "Plaster001", "Wood062"],
+   "note": "Pobrane skryptem work/unreal/pobierz_tekstury.py do work/textures (poza repozytorium). Kolor i mapa normalnych w 1K JPG; szorstkosc scena bierze liczbowo z tego pliku."
+  }
+ ],
+ "rooms": [
+  {
+   "id": "poddasze",
+   "name": "Pokoj na poddaszu",
+   "polygon_xy_m": [[0.0, 0.0], [2.9, 0.0], [2.9, 4.12], [0.0, 4.12]],
+   "height_m": 2.32,
+   "expected_area_m2": 11.95,
+   "openings": [
+    {"kind": "door", "wall_index": 1, "offset_m": 0.16, "width_m": 0.85, "sill_m": 0.0, "height_m": 2.0,
+     "note": "drzwi w scianie pelnej wysokosci, przy narozniku wejsciowym"},
+    {"kind": "window", "wall_index": 2, "offset_m": 0.63, "width_m": 1.0, "sill_m": 0.79, "height_m": 1.26,
+     "note": "okno szczytowe; offset liczony od naroznika (2.9, 4.12)"}
+   ],
+   "evidence": "Obrys i wysokosci z rekonstrukcji v05. Sciana kolankowa ma 1,07 m, dalej idzie skos do sufitu plaskiego na 2,32 m - sam obrys tego nie opisuje. Okno polaciowe siedzi w skosie, wiec nie jest otworem w scianie i nie ma go na tej liscie."
+  }
+ ],
+ "furniture": [],
+ "finishes": {
+  "deska-brazowa": {"name": "Deska brazowa (stan obecny)", "pattern": "planks", "color": "#8b5b40",
+                    "texture": "WoodFloor007rot_Color", "normal": "WoodFloor007rot_Normal",
+                    "roughness": 0.55, "scale_m": 1.44,
+                    "note": "tekstura obrocona o 90 stopni: deski w pliku leza poziomo, a w pokoju biegna wzdluz osi Y. 1,44 m = osiem desek po 18 cm, czyli tyle, ile ma deska w scenie"},
+  "deska-jasna": {"name": "Deska jasny dab", "pattern": "planks", "color": "#c2a887",
+                  "texture": "WoodFloor033rot_Color", "normal": "WoodFloor033rot_Normal",
+                  "roughness": 0.45, "scale_m": 1.44},
+  "tynk-chlodny": {"name": "Tynk chlodny szary (stan obecny)", "pattern": "plaster", "color": "#a4aaaf",
+                   "texture": "Plaster001_Color", "normal": "Plaster001_Normal",
+                   "tint": "#c2cfd9", "roughness": 0.88, "scale_m": 1.6},
+  "tynk-cieply-bialy": {"name": "Tynk cieply bialy", "pattern": "plaster", "color": "#ece7df",
+                        "texture": "Plaster001_Color", "normal": "Plaster001_Normal",
+                        "roughness": 0.9, "scale_m": 1.6},
+  "sufit-bialy": {"name": "Sufit bialy", "pattern": "plain", "color": "#d1d3d4",
+                  "texture": "Plaster001_Color", "roughness": 0.92, "scale_m": 2.0},
+  "orzech": {"name": "Orzech (stan obecny)", "pattern": "planks", "color": "#6a4a33",
+             "texture": "Wood062_Color", "normal": "Wood062_Normal",
+             "tint": "#ffe0b3", "roughness": 0.35, "scale_m": 2.4,
+             "note": "listwa ma 9 cm wysokosci; przy kaflu 0,9 m sloj wychodzil gesty jak zadruk, przy 2,4 m widac spokojne drewno"},
+  "listwa-biala": {"name": "Listwa biala", "pattern": "plain", "color": "#f0efec",
+                   "texture": "Plaster001_Color", "roughness": 0.4, "scale_m": 1.5},
+  "stolarka-biala": {"name": "Stolarka biala", "pattern": "plain", "color": "#f0efec",
+                     "texture": "Plaster001_Color", "roughness": 0.4, "scale_m": 1.5},
+  "drzwi-biale": {"name": "Drzwi biale", "pattern": "plain", "color": "#e9e7e2",
+                  "texture": "Plaster001_Color", "roughness": 0.45, "scale_m": 1.5},
+  "szyba": {"name": "Szyba", "pattern": "plain", "color": "#f6fafe", "roughness": 0.08, "opacity": 0.2}
+ },
+ "variants": [
+  {
+   "id": "basic",
+   "name": "Stan obecny",
+   "description": "Kolory odczytane z rekonstrukcji: brazowa podloga, chlodny szary tynk, orzechowe listwy i stolarka.",
+   "assignments": [
+    {"role": "floor", "finish": "deska-brazowa"},
+    {"role": "wall", "finish": "tynk-chlodny"},
+    {"role": "ceiling", "finish": "sufit-bialy"},
+    {"role": "skirting", "finish": "orzech"},
+    {"role": "frame_window", "finish": "orzech"},
+    {"role": "frame_door", "finish": "orzech"},
+    {"role": "leaf", "finish": "orzech"},
+    {"role": "glass", "finish": "szyba"}
+   ]
+  },
+  {
+   "id": "premium",
+   "name": "Jasne wykonczenie",
+   "description": "Propozycja, nie stan faktyczny: jasna deska, cieply bialy tynk, biala stolarka i listwy.",
+   "assignments": [
+    {"role": "floor", "finish": "deska-jasna"},
+    {"role": "wall", "finish": "tynk-cieply-bialy"},
+    {"role": "ceiling", "finish": "sufit-bialy"},
+    {"role": "skirting", "finish": "listwa-biala"},
+    {"role": "frame_window", "finish": "stolarka-biala"},
+    {"role": "frame_door", "finish": "stolarka-biala"},
+    {"role": "leaf", "finish": "drzwi-biale"},
+    {"role": "glass", "finish": "szyba"}
+   ]
+  }
+ ],
+ "disclosures": [
+  "Geometria to rekonstrukcja ze zdjec, nie inwentaryzacja. Polozenie grzejnika wzdluz sciany i drobne detale gniazd sa przyblizeniem.",
+  "Wariant 'basic' odtwarza kolory z rekonstrukcji. Barwa orzecha jest przyblizeniem tekstury z blenda, bo material niesie obrazek, a nie plaski kolor.",
+  "Wariant 'premium' jest propozycja wykonczenia, a nie czyms, co w pokoju stoi. Zadna pozycja nie ma ceny ani zgody producenta.",
+  "Meble, grzejnik i osprzet zostaja z materialami z blenda - warianty zmieniaja tylko powierzchnie budowlane.",
+  "Tekstury powierzchni sa zastepcze: CC0 z ambientCG, dobrane na oko do barwy z rekonstrukcji. Pokazuja, jak material lapie swiatlo, ale nie sa zdjeciem tej konkretnej deski ani tego tynku."
+ ],
+ "presentation": {
+  "title": "Pokoj na poddaszu",
+  "views": {
+   "pokoj": {"position": [1.45, 0.9], "target": [1.6, 4.1]},
+   "od-drzwi": {"position": [2.45, 0.8], "target": [0.8, 3.6]}
+  }
+ }
+}
