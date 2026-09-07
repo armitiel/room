@@ -215,11 +215,54 @@ def sha256(path):
     return digest.hexdigest()
 
 
+def konwertuj_krzywe(bpy, include_placeholders):
+    """Krzywe zamienione na siatki - inaczej w ogole nie trafiaja do FBX.
+
+    partition_objects() bierze wylacznie obiekty typu MESH, a eksporter FBX
+    dostaje object_types={"MESH","EMPTY"}. Krzywe wypadaly wiec dwa razy.
+    W pokoju na poddaszu to dwanascie obiektow: cztery szprosy i dwie
+    listwy przyszybowe w drzwiach, szpros srodkowy, trzy listwy
+    przysufitowe, szew skosu i kabel grzejnika. W Blenderze i w glTF byly,
+    w Unrealu ich nie bylo - drzwi czytaly sie jak plaska decha.
+
+    Zamiana idzie na kopii przez new_from_object, bez operatorow: w trybie
+    bezokienkowym duplikacja operatorem zalezy od kontekstu, a to sie mysci
+    dopiero w logu. Oryginal dostaje tymczasowa nazwe, zeby siatka mogla
+    przejac jego wlasna - manifest i mapa rol maja stac na nazwach ze sceny.
+    """
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    wynik = []
+    for obiekt in list(bpy.context.scene.objects):
+        if obiekt.type not in {"CURVE", "SURFACE", "FONT", "META"}:
+            continue
+        if obiekt.name.startswith(export_scene.CUTTER_PREFIX):
+            continue
+        if (obiekt.name.startswith(export_scene.PLACEHOLDER_PREFIX)
+                and not include_placeholders):
+            continue
+        nazwa = obiekt.name
+        siatka = bpy.data.meshes.new_from_object(obiekt.evaluated_get(depsgraph))
+        if not siatka.vertices:
+            bpy.data.meshes.remove(siatka)
+            continue
+        obiekt.name = nazwa + "__krzywa"
+        kopia = bpy.data.objects.new(nazwa, siatka)
+        kopia.matrix_world = obiekt.matrix_world.copy()
+        for klucz in obiekt.keys():
+            if not klucz.startswith("_"):
+                kopia[klucz] = obiekt[klucz]
+        bpy.context.scene.collection.objects.link(kopia)
+        wynik.append(kopia)
+    return wynik
+
+
 def main() -> int:
     args = parse_args()
     import bpy
 
     exported, skipped = export_scene.partition_objects(bpy, args.include_placeholders)
+    z_krzywych = konwertuj_krzywe(bpy, args.include_placeholders)
+    exported.extend(z_krzywych)
     if not exported:
         print("Scena nie zawiera zadnej siatki do eksportu.", file=sys.stderr)
         return 1
@@ -324,6 +367,7 @@ def main() -> int:
         "bounds_max_m": [round(v, 4) for v in all_high],
         "size_m": [round(all_high[a] - all_low[a], 4) for a in range(3)],
         "mesh_count": len(entries),
+        "z_krzywych": sorted(o.name for o in z_krzywych),
         "role_map": roles["path"] if roles else "",
         "meshes": entries,
         "anchors": anchor_map,
@@ -336,7 +380,8 @@ def main() -> int:
     licznik_rol = {}
     for entry in entries:
         licznik_rol[entry["role"]] = licznik_rol.get(entry["role"], 0) + 1
-    print("FBX: {} ({} siatek, {} kotwic)".format(args.fbx, len(entries), len(anchor_map)))
+    print("FBX: {} ({} siatek, {} kotwic, w tym {} z krzywych)".format(
+        args.fbx, len(entries), len(anchor_map), len(z_krzywych)))
     print("Bryla sceny [m]: {}".format(manifest["size_m"]))
     print("Role: {}".format(", ".join("{}={}".format(k, licznik_rol[k])
                                       for k in sorted(licznik_rol))))
