@@ -73,6 +73,7 @@
   button:hover { background: rgba(255,255,255,.07); color: var(--text); }
   button[aria-pressed="true"] { background: rgba(200,162,106,.16); color: var(--accent); }
   button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button:disabled { opacity:.4; cursor:default; }
 
   #hint {
     position: fixed; z-index: 10; left: 50%; transform: translateX(-50%);
@@ -803,7 +804,7 @@ function setMode(next) {
     camera.position.set(0, 0, 0);
     walkRig.position.copy(spawn.position);
     look.yaw = spawn.heading || 0;
-    look.pitch = 0;
+    look.pitch = spawn.pitch ?? -0.22;
     applyLook();
     setHint(isTouchOnly ? walkHintTouch : walkHint);
   } else {
@@ -811,7 +812,7 @@ function setMode(next) {
     scene.add(camera);
     camera.rotation.set(0, 0, 0);
     orbit.enabled = true;
-    camera.position.copy(orbitHome.position);
+    camera.position.copy(fittedOrbitPosition());
     orbit.target.copy(orbitHome.target);
     orbit.update();
     setHint(orbitHint);
@@ -839,7 +840,17 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  if (mode === 'orbit' && sceneData) {
+    camera.position.copy(fittedOrbitPosition());
+    orbit.target.copy(orbitHome.target);
+    orbit.update();
+  }
 });
+
+function fittedOrbitPosition() {
+  const offset = orbitHome.position.clone().sub(orbitHome.target);
+  return offset.multiplyScalar(Math.max(1, .78 / camera.aspect)).add(orbitHome.target);
+}
 
 /* --- Wczytanie ------------------------------------------------------------- */
 

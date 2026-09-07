@@ -1,0 +1,14 @@
+{
+  "built_at": "2026-09-07T12:29:31.110903+00:00",
+  "source_sha256": {
+    "datasets\\sample\\kruszczyki-22\\scene.json": "fcf1ae515c5db88423dde47ce523f3d78575300f55826fdec4863bd6e41386bb",
+    "catalog\\products.json": "840368ba1055925d010fdc0e4c180fc7d7030815f42876e74734ec12c3f09959"
+  },
+  "preview_only": true,
+  "furniture_count": 46,
+  "artifacts": {
+    "web\\assets\\room.glb": "4c33dec1ffb2f2b0580eb49a72aee87c492ed4114488c62cca6ede8d0ed13f04",
+    "web\\scene.json": "fcf1ae515c5db88423dde47ce523f3d78575300f55826fdec4863bd6e41386bb",
+    "web\\standalone.html": "8b7379b5ca214bbe086cd415015335d178924ff2211245affdc257717bebacca"
+  }
+}

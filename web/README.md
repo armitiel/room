@@ -1,106 +1,52 @@
-# Frontend
+# Room — główne demo standalone
 
-Przeglądarka sceny działająca w całości po stronie klienta: scena glTF renderowana
-przez three.js na karcie graficznej osoby, która otworzy link. Bez serwera GPU,
-bez streamingu, bez konta u dostawcy — hosting statyczny wystarczy.
-
-## Pliki
-
-    index.html                 strona i przeglądarka (jeden plik, bez kroku budowania)
-    scene.json                 metadane sceny: obrys, wysokość, otwory, status
-    assets/room.glb            geometria wyeksportowana z Blendera
-    vendor/three/              three.js r169, licencja MIT, dołączona obok
-    standalone.html            wszystko w jednym pliku, działa offline z dysku
-    tools/build_standalone.py  składa standalone.html z powyższych
-
-Biblioteka leży w repozytorium, a nie na CDN-ie, celowo. Demo sprzedażowe nie
-może paść dlatego, że w sali konferencyjnej klienta jest słaby internet albo
-firewall blokuje zewnętrzne domeny. Cena: ~850 kB w repo.
+Aktualizacja: 7 września 2026. Główna scena to umeblowany parter z `datasets/sample/kruszczyki-22/scene.json`. Pokój użytkownika jest osobnym testem rekonstrukcji.
 
 ## Uruchomienie
 
-Z dysku, bez niczego — także bez internetu:
+Otwórz `web/standalone.html` dwuklikiem w Edge lub Chrome. Model, dane i biblioteki są osadzone w jednym pliku (~4,5 MiB), bez połączeń HTTP. Wersję rozdzieloną można uruchomić lokalnie:
 
-    otwórz web/standalone.html dwuklikiem
+    python -m http.server --directory web 8080
 
-`standalone.html` (~1,2 MB) ma w środku model, scenę i całą bibliotekę.
-Sprawdzone: otwiera się z `file://` i renderuje bez połączenia z siecią.
+## Aktualizacja całej sceny
 
-Przez serwer (potrzebne dla `index.html`, bo przeglądarki blokują `fetch`
-dla adresów `file://`):
+    python web/tools/build_showcase.py
 
-    python3 -m http.server --directory web 8080
+Jeżeli Blender jest w innej lokalizacji:
 
-Publicznie: włącz GitHub Pages dla katalogu `web/` i dostajesz link,
-który możesz wysłać deweloperowi.
+    python web/tools/build_showcase.py --blender "ścieżka/do/blender.exe"
 
-## Skąd biorą się pliki
+Komenda buduje scenę Blender, eksportuje GLB z identyfikatorami mebli, składa standalone i aktualizuje `web/scene.json`, `web/assets/room.glb`, `web/standalone.html` oraz `web/build-manifest.json`. Wyniki i logi robocze trafiają do `work/scenes/showcase/`. Dane i katalog nie mogą zmienić się w trakcie budowania. Scena zachowuje status draft; jest to przygotowanie lokalnego podglądu.
 
-    blender --background --python-exit-code 1 --python blender/scripts/build_scene.py -- \
-        --scene datasets/sample/demo/scene.json --allow-unapproved --ceiling
-    blender --background work/scenes/demo-room-001/demo-room-001.blend \
-        --python blender/scripts/export_scene.py -- --format glb --units m
+Przy zmianach samego interfejsu:
 
-Potem skopiuj `.glb` do `web/assets/room.glb`, `scene.json` do `web/scene.json`
-i przebuduj wersję osadzoną:
+    python web/tools/build_standalone.py
 
-    python3 web/tools/build_standalone.py
+Ta druga komenda nie aktualizuje geometrii ani manifestu pełnej budowy.
 
-## API dla strony
+## Prezentacja
 
-`window.RoomViewer` to jedyna powierzchnia, przez którą strona rozmawia
-z przeglądarką sceny:
-
-    RoomViewer.setMode('walk' | 'orbit')
-    RoomViewer.reset()
-    RoomViewer.canStand(px, py)          // czy w tym punkcie rzutu da się stanąć
-    RoomViewer.worldFromPlan(px, py)     // rzut → scena
-    RoomViewer.planFromWorld(x, z)       // scena → rzut
-    RoomViewer.listVariants()
-    RoomViewer.setVariant(id)
-    RoomViewer.on('ready' | 'variantchange', handler)
-
-To samo API ma obsłużyć obie ścieżki renderowania. Dziś `setVariant` podmienia
-materiały lokalnie; przy Pixel Streamingu będzie wysyłać identyfikator do
-działającej aplikacji Unreal. Strona nie musi wiedzieć, co jest pod spodem.
+- Start w Premium, widok makiety z obniżonymi ścianami. Przycisk „Niskie ściany” pozwala pokazać pełną wysokość. Geometria źródłowa nie jest przycinana — to zabieg widoku w przeglądarce.
+- Basic/Premium podmieniają materiały powierzchni, bez zmiany układu wyposażenia.
+- Lista pomieszczeń otwiera spacer z dobranego punktu. Preferowane kadry zapisuje pole `presentation.views` w źródłowym JSON.
+- Światło dzienne i wieczorne, lokalne światła we wnętrzach, neutralna paleta tkanin poglądowych i drewna.
+- „Od nowa” wraca do widoku całej sceny. „Spacer” otwiera ostatnio wybrane pomieszczenie.
+- Informacje o źródłach i przybliżeniach są dostępne w rozwijanym „O scenie”.
 
 ## Sterowanie
 
-Tryb **Rzut**: przeciągnij, żeby obrócić, przewiń, żeby przybliżyć. Działa
-także dotykiem, więc na telefonie to jest ten tryb.
+Makieta: przeciąganie obraca, kółko myszy przybliża. Spacer: przeciąganie rozgląda, WASD lub strzałki poruszają, Shift przyspiesza, Esc wraca do makiety. Na urządzeniach dotykowych spacer ma dodatkowe przyciski kierunkowe. Kadrowanie makiety dopasowuje się do wąskiego ekranu.
 
-Tryb **Spacer**: przeciągnij albo kliknij, żeby się rozglądać, `W` `A` `S` `D`
-chodzą, `Shift` przyspiesza, `Esc` wychodzi. Rozglądanie działa również dotykiem
-i wewnątrz ramki `iframe`, bo nie polegamy na blokadzie kursora — jest tylko
-ułatwieniem, nie warunkiem. Chodzenie wymaga klawiatury, więc na telefonie
-właściwym trybem pozostaje „Rzut”.
+Ruch uwzględnia obrysy pomieszczeń i gabaryty mebli stojących na podłodze. Przejścia są tworzone tylko, gdy otwór łączy sąsiadujące pomieszczenia. Kolizje mebli są przybliżeniem opartym na osiowych gabarytach, nie pełną fizyką siatki. Nie zastępują kontroli zgodności rzutu; nie rozwiązują brakujących fragmentów korytarza w danych źródłowych.
 
-## Kolizje
+## API
 
-Ściany zatrzymują na podstawie **wielokąta z `scene.json`**, a nie siatki 3D.
-Dzięki temu wynik zgadza się z wymiarami z umowy, a wycięty otwór drzwiowy
-nadal jest ścianą, przez którą nie da się przejść. Promień „ciała" to 0,35 m,
-wysokość oczu 1,65 m. Przy zablokowanym ruchu na wprost próbowany jest ruch
-wzdłuż każdej z osi osobno, więc idzie się po ścianie, a nie zatrzymuje w miejscu.
+`window.RoomViewer` udostępnia: `setMode('walk'|'orbit')`, `reset()`, `visitRoom(id)`, `canStand(x,y)`, `setVariant(id)`, `listVariants()`, `listFinishes()`, `on(event, callback)` oraz stan `mode`, `activeVariant`, `lighting`, `cutaway`, `sceneData`.
 
-## Układ współrzędnych
+Układ współrzędnych: punkt rzutu `(x,y)` odpowiada światu three.js `(x, wysokość, -y)`.
 
-Blender eksportuje glTF w konwencji Y w górę. Punkt rzutu `(px, py)` z `scene.json`
-odpowiada pozycji świata `(x = px, z = -py)`. Ta zamiana jest w jednym miejscu
-w `index.html` — jeśli kiedykolwiek zmienimy ustawienia eksportu, trzeba poprawić
-tam i w `export_scene.py`, nigdzie indziej.
+## Sprawdzenie
 
-## Co zostało sprawdzone
+Sprawdzono lokalny HTTP i samodzielny HTML, oba wykończenia, zmianę oświetlenia, przycinanie ścian, nawigację po pomieszczeniach, ruch i reset. Widoki skontrolowano na pulpicie i w emulacji 390 px. Rzeczywisty telefon i Safari wymagają osobnego odbioru. Dowody bieżącej sesji są w `work/audit/`.
 
-Renderowanie i sterowanie przetestowane w Chromium: obrys L z czterema otworami
-wczytuje się, panel pokazuje 24,0 m², kolizje trzymają. Punkty sprawdzone:
-środek obu części L — można stanąć; wcięcie L i teren poza obrysem — nie;
-0,1 m od ściany — nie; 0,5 m — tak; **w świetle wyciętych drzwi — nie**, czyli
-otwór w siatce nie jest dziurą w kolizji. Marsz na wprost zatrzymuje się
-0,35 m przed ścianą i ślizga wzdłuż niej zamiast blokować w miejscu.
-
-## Czego tu jeszcze nie ma
-
-Wariantów wykończenia (API jest przygotowane, ale generator nie tworzy jeszcze
-wariantów). Formularza kontaktowego i sekcji ofertowej. Ekranu kolejki i obsługi
-sesji — te są potrzebne dopiero przy Pixel Streamingu.
+Geometria nadal jest wersją roboczą. Ta iteracja poprawia główną scenę i prezentację; nie dodaje ekstrakcji AI ani Pixel Streamingu.

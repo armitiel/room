@@ -515,6 +515,21 @@ def build_furniture(bpy, plan, root, parent_collection, args, report_lines):
             if not created:
                 report_lines.append("Plik {} nie zawieral zadnego obiektu.".format(absolute))
                 continue
+            # This Collada-derived sofa encodes opaque upholstery/legs with
+            # alpha=0. glTF exports that as a masked, invisible surface.
+            # Repair only this known opaque product, leaving glass and other
+            # catalogue materials untouched.
+            if item["product_id"] == "comforty-grid-sofa":
+                for obj in created:
+                    if obj.type != "MESH":
+                        continue
+                    for material in obj.data.materials:
+                        if not material or not material.use_nodes:
+                            continue
+                        bsdf = material.node_tree.nodes.get("Principled BSDF")
+                        if bsdf and not bsdf.inputs["Alpha"].is_linked and bsdf.inputs["Alpha"].default_value == 0:
+                            bsdf.inputs["Alpha"].default_value = 1.0
+                            material.diffuse_color = (*material.diffuse_color[:3], 1.0)
             empty = bpy.data.objects.new("anchor_" + name, None)
             collection.objects.link(empty)
             for obj in created:

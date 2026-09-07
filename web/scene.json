@@ -1153,9 +1153,9 @@
     "oak": {
       "name": "Deska debowa",
       "pattern": "planks",
-      "color": "#b98a55",
+      "color": "#b5a085",
       "roughness": 0.55,
-      "scale_m": 1.8
+      "scale_m": 1.25
     },
     "tile-basic": {
       "name": "Plytka 30x30",
@@ -1167,7 +1167,7 @@
     "tile-premium": {
       "name": "Plytka wielkoformatowa",
       "pattern": "tiles",
-      "color": "#8d8a84",
+      "color": "#b5b1a5",
       "roughness": 0.22,
       "scale_m": 0.9
     },
@@ -1186,7 +1186,7 @@
     "plaster-clay": {
       "name": "Cieply piaskowy",
       "pattern": "plaster",
-      "color": "#ded3c2",
+      "color": "#d6cbb7",
       "roughness": 0.95
     },
     "ceiling-white": {
@@ -1232,5 +1232,40 @@
     "Geometria odtworzona z opublikowanego rzutu, nie z dokumentacji wykonawczej. Cztery pomieszczenia wymagają sprawdzenia.",
     "Siedziska w salonie to prawdziwe modele Comforty, użyte bez potwierdzonej zgody producenta. Pozostałe meble to bryły zastępcze — pokazują skalę i układ, nie są produktami do kupienia.",
     "Projekt „Dom w kruszczykach 22” jest utworem ARCHON+. Rekonstrukcja służy testowi wewnętrznemu."
-  ]
+  ],
+  "presentation": {
+    "title": "Przestrzeń do życia",
+    "views": {
+      "salon": {
+        "position": [
+          3.6,
+          5.1
+        ],
+        "target": [
+          1.4,
+          6.4
+        ]
+      },
+      "pokoj-srodek": {
+        "position": [
+          6.3,
+          4.5
+        ],
+        "target": [
+          6.3,
+          6.6
+        ]
+      },
+      "kuchnia": {
+        "position": [
+          1.6,
+          1.8
+        ],
+        "target": [
+          1.4,
+          0.3
+        ]
+      }
+    }
+  }
 }
