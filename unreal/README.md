@@ -232,6 +232,37 @@ to odpowiednik `RoomViewer.setVariant('premium')` w przeglądarce.
 - Scena źródłowa ma status `draft`: wymiary są odczytem ze zdjęć, nie
   pomiarem, a wariant `premium` jest propozycją bez cen i bez zgód.
 
+## Kadry na stronę
+
+```powershell
+powershell -ExecutionPolicy Bypass -File unreal\tools\render_shots.ps1
+powershell -ExecutionPolicy Bypass -File unreal\tools\render_shots.ps1 -Res 3840x2160
+```
+
+Jeden PNG na wariant i widok, do `work/renders`. Kadry biorą się z
+`presentation.views` w `scene.json`, więc dopisany widok od razu ma swoje
+zdjęcie. Kamera stoi na wysokości oczu (1,55 m) i **trzyma poziom** — pion
+zostaje pionem, tak jak w fotografii architektury.
+
+Trzy rzeczy, które trzeba było obejść, bo każda kosztowała podejście:
+
+- **`-ExecCmds=py <ścieżka>` rozpada się na spacji** i silnik wykonuje samo
+  `py`. Komenda idzie więc przez plik `.cmd`, gdzie cudzysłowy są nasze.
+- **`-ExecutePythonScript=` zamyka edytor natychmiast po skrypcie**, a nasz
+  tylko rejestruje pętlę po ticku i wraca — edytor gasł przed pierwszą
+  klatką.
+- **W jednej sesji wychodzi tylko pierwszy kadr.** Kolejne `HighResShot`
+  zostają w kolejce i nigdy się nie wykonują; wymuszanie odrysowania
+  (`editor_invalidate_viewports`) ani wyłączanie usypiania w tle nie pomogło.
+  Dlatego jeden kadr na uruchomienie edytora (`ROOM_SHOT_INDEX`): około
+  45 sekund na zdjęcie, ale wychodzi za każdym razem.
+
+Przed zdjęciem skrypt wychodzi z pilotowania aktora, odznacza zaznaczenie
+i włącza tryb gry — inaczej w kadrze siedzi pomarańczowy obrys zaznaczenia,
+wskaźnik osi i siatka, a kamera wraca na pozycję pilotowanego aktora.
+Czeka też 90 klatek, żeby Lumen zdążył policzyć światło odbite; bez tego
+w cieniach zostaje szum.
+
 ## Poziom jest wynikiem, nie źródłem
 
 Każda budowa **kasuje i stawia poziom od nowa** — razem z materiałami

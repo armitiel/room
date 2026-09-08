@@ -236,61 +236,143 @@ WEJSCIA_ROZMIARU = ("TextureSize (V3)", "TextureSize", "WorldSize (V3)",
                     "WorldSize")
 
 
+def polacz(lib, skad, wyjscie, dokad, *nazwy):
+    """Laczy wezly, probujac kolejnych nazw wejscia.
+
+    Nazwy wejsc roznia sie miedzy wersjami silnika, a wezel o jednym wejsciu
+    miewa je pod pusta nazwa. Zamiast zgadywac raz, probujemy po kolei.
+    """
+    for nazwa in nazwy:
+        if lib.connect_material_expressions(skad, wyjscie, dokad, nazwa):
+            return True
+    return False
+
+
+def _rzut_ze_swiata(material, lib, rozmiar, nazwa_param, x, y):
+    """Jeden rzut tekstury ze wspolrzednych swiata: parametr + wezel funkcji."""
+    funkcja = unreal.EditorAssetLibrary.load_asset(WORLD_ALIGNED)
+    biala = unreal.EditorAssetLibrary.load_asset(WHITE_TEXTURE)
+    if funkcja is None or biala is None:
+        return None
+    tekstura = lib.create_material_expression(
+        material, unreal.MaterialExpressionTextureObjectParameter, x, y)
+    tekstura.set_editor_property("parameter_name", nazwa_param)
+    tekstura.set_editor_property("texture", biala)
+    wezel = lib.create_material_expression(
+        material, unreal.MaterialExpressionMaterialFunctionCall, x + 330, y)
+    wezel.set_material_function(funkcja)
+    if not lib.connect_material_expressions(tekstura, "", wezel, "TextureObject"):
+        return None
+    for kandydat in WEJSCIA_ROZMIARU:
+        if lib.connect_material_expressions(rozmiar, "", wezel, kandydat):
+            break
+    return wezel
+
+
+def _bez_gammy(material, lib, wezel, x, y):
+    """Cofa rozjasnienie, ktore robi sampler kolorowy.
+
+    Mapa normalnych i mapa szorstkosci to liczby, nie kolory - ale musza isc
+    tym samym samplerem co kolor, bo funkcja WorldAlignedTexture ma go
+    wpisanego na sztywno i material z innym typem sie nie skompiluje.
+    Sampler traktuje plik jak sRGB i rozjasnia wartosci, wiec wracamy do
+    tego, co naprawde jest w pliku, podnoszac je do potegi 1/2,2.
+    """
+    gamma = lib.create_material_expression(
+        material, unreal.MaterialExpressionPower, x, y)
+    gamma.set_editor_property("const_exponent", 0.4545)
+    if not polacz(lib, wezel, "XYZ Texture", gamma, "Base", ""):
+        return None
+    return gamma
+
+
 def world_aligned_normal(material, lib, rozmiar):
     """Mapa normalnych rzutowana tak samo jak kolor.
 
     Bez niej tynk i drewno sa gladkie jak szklo: kolor sie zgadza, ale
     swiatlo slizga sie po plaskiej plaszczyznie i wszystko czyta sie jak
-    wydruk. Mapa normalnych daje mikroreliefe - to ona sprawia, ze tynk
-    wyglada jak tynk.
+    wydruk. To mikrorelief sprawia, ze tynk wyglada jak tynk.
+
+    Silnik 5.8 nie ma funkcji WorldAlignedNormal (w katalogu Texturing sa
+    tylko trzy inne), wiec bierzemy zwykla WorldAlignedTexture i rozpakowujemy
+    wektor recznie: (x * 2) - 1 po cofnieciu gammy. Tekstura musi zostac
+    zaimportowana jak zwykly kolor, nie jako mapa normalnych - inaczej typ
+    samplera sie nie zgadza.
 
     Suwak "UseNormal" jest po to, zeby wykonczenie bez mapy nie dostalo
     smieci: przy zerze mieszanie zwraca czysta normalna plaszczyzny.
     """
-    funkcja = unreal.EditorAssetLibrary.load_asset(WORLD_ALIGNED_NORMAL)
-    biala = unreal.EditorAssetLibrary.load_asset(WHITE_TEXTURE)
-    if funkcja is None or biala is None:
-        # Sprawdzone w 5.8: w katalogu Texturing sa tylko ScaleUVsByCenter,
-        # TextureCropping i WorldAlignedTexture - funkcji do map normalnych
-        # ten silnik nie ma. Podstawienie zwyklej WorldAlignedTexture nie
-        # przejdzie, bo sampler w niej jest kolorowy, a mapa normalnych ma
-        # inny typ i material sie nie skompiluje. Zeby miec relief, trzeba
-        # albo napisac wlasna funkcje, albo rozwinac UV w Blenderze.
-        note("Ten silnik nie ma WorldAlignedNormal - powierzchnie dostaja "
-             "kolor i szorstkosc, bez mikroreliefu")
+    wezel = _rzut_ze_swiata(material, lib, rozmiar, "NormalTexture", -1150, 300)
+    if wezel is None:
+        note("Nie udalo sie zbudowac rzutu mapy normalnych")
         return False
-    tekstura = lib.create_material_expression(
-        material, unreal.MaterialExpressionTextureObjectParameter, -1150, 260)
-    tekstura.set_editor_property("parameter_name", "NormalTexture")
-    tekstura.set_editor_property("texture", biala)
+    gamma = _bez_gammy(material, lib, wezel, -450, 300)
+    if gamma is None:
+        return False
+    rozpakuj = lib.create_material_expression(
+        material, unreal.MaterialExpressionConstantBiasScale, -300, 300)
+    rozpakuj.set_editor_property("bias", -0.5)
+    rozpakuj.set_editor_property("scale", 2.0)
     suwak = lib.create_material_expression(
-        material, unreal.MaterialExpressionScalarParameter, -1150, 460)
+        material, unreal.MaterialExpressionScalarParameter, -300, 520)
     suwak.set_editor_property("parameter_name", "UseNormal")
     suwak.set_editor_property("default_value", 0.0)
     plaska = lib.create_material_expression(
-        material, unreal.MaterialExpressionConstant3Vector, -820, 460)
+        material, unreal.MaterialExpressionConstant3Vector, -300, 420)
     plaska.set_editor_property("constant", unreal.LinearColor(0.0, 0.0, 1.0, 1.0))
-    wezel = lib.create_material_expression(
-        material, unreal.MaterialExpressionMaterialFunctionCall, -820, 260)
-    wezel.set_material_function(funkcja)
     mieszanie = lib.create_material_expression(
-        material, unreal.MaterialExpressionLinearInterpolate, -300, 300)
+        material, unreal.MaterialExpressionLinearInterpolate, -120, 380)
 
-    for skad, wyjscie, dokad, wejscie in (
-        (tekstura, "", wezel, "TextureObject"),
-        (plaska, "", mieszanie, "A"),
-        (wezel, "XYZ Texture", mieszanie, "B"),
-        (suwak, "", mieszanie, "Alpha"),
-    ):
-        if not lib.connect_material_expressions(skad, wyjscie, dokad, wejscie):
-            note("Mapa normalnych: nie udalo sie polaczyc {} w {}".format(
-                wejscie, material.get_name()))
+    if not polacz(lib, gamma, "", rozpakuj, "Input", ""):
+        note("Mapa normalnych: nie wpiela sie rozpakowanie wektora")
+        return False
+    for skad, dokad, wejscie in ((plaska, mieszanie, "A"),
+                                 (rozpakuj, mieszanie, "B"),
+                                 (suwak, mieszanie, "Alpha")):
+        if not polacz(lib, skad, "", dokad, wejscie):
+            note("Mapa normalnych: nie udalo sie polaczyc {}".format(wejscie))
             return False
-    for kandydat in WEJSCIA_ROZMIARU:
-        if lib.connect_material_expressions(rozmiar, "", wezel, kandydat):
-            break
     return lib.connect_material_property(
         mieszanie, "", unreal.MaterialProperty.MP_NORMAL)
+
+
+def world_aligned_roughness(material, lib, rozmiar, rough):
+    """Szorstkosc z mapy zamiast jednej liczby na cala plaszczyzne.
+
+    Jedna liczba znaczy, ze cala podloga odbija swiatlo identycznie w kazdym
+    punkcie - a to wlasnie po tym poznaje sie render. Prawdziwa deska ma
+    miejsca bardziej i mniej wytarte, tynk ma nierowny polysk. Mapa daje te
+    roznice; suwak "UseRoughnessMap" wraca do liczby, gdy mapy nie ma.
+    """
+    wezel = _rzut_ze_swiata(material, lib, rozmiar, "RoughnessTexture",
+                            -1150, 700)
+    if wezel is None:
+        return False
+    gamma = _bez_gammy(material, lib, wezel, -450, 700)
+    if gamma is None:
+        return False
+    kanal = lib.create_material_expression(
+        material, unreal.MaterialExpressionComponentMask, -300, 700)
+    kanal.set_editor_property("r", True)
+    kanal.set_editor_property("g", False)
+    kanal.set_editor_property("b", False)
+    kanal.set_editor_property("a", False)
+    suwak = lib.create_material_expression(
+        material, unreal.MaterialExpressionScalarParameter, -300, 900)
+    suwak.set_editor_property("parameter_name", "UseRoughnessMap")
+    suwak.set_editor_property("default_value", 0.0)
+    mieszanie = lib.create_material_expression(
+        material, unreal.MaterialExpressionLinearInterpolate, -120, 780)
+
+    if not polacz(lib, gamma, "", kanal, "Input", ""):
+        return False
+    for skad, dokad, wejscie in ((rough, mieszanie, "A"),
+                                 (kanal, mieszanie, "B"),
+                                 (suwak, mieszanie, "Alpha")):
+        if not polacz(lib, skad, "", dokad, wejscie):
+            return False
+    return lib.connect_material_property(
+        mieszanie, "", unreal.MaterialProperty.MP_ROUGHNESS)
 
 
 def world_aligned_color(material, lib, color):
@@ -310,7 +392,7 @@ def world_aligned_color(material, lib, color):
     if funkcja is None or biala is None:
         note("Brak WorldAlignedTexture albo bialej tekstury - wykonczenia "
              "zostaja plaskim kolorem")
-        return False
+        return None
     tekstura = lib.create_material_expression(
         material, unreal.MaterialExpressionTextureObjectParameter, -1150, -200)
     tekstura.set_editor_property("parameter_name", "BaseTexture")
@@ -336,7 +418,7 @@ def world_aligned_color(material, lib, color):
                 wyjscie or "wyjscie", wejscie, material.get_name()))
             udalo = False
     if not udalo:
-        return False
+        return None
 
     # Nazwa wejscia rozmiaru zawiera w sobie typ i rozni sie miedzy wersjami
     # silnika ("TextureSize (V3)" kontra "WorldSize"), a python nie pozwala
@@ -355,8 +437,12 @@ def world_aligned_color(material, lib, color):
     if not world_aligned_normal(material, lib, rozmiar):
         note("Material {} zostaje bez map normalnych".format(
             material.get_name()))
-    return lib.connect_material_property(
-        mnozenie, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    if not lib.connect_material_property(
+            mnozenie, "", unreal.MaterialProperty.MP_BASE_COLOR):
+        return None
+    # Rozmiar wraca do wolajacego, bo ten sam parametr steruje skala tekstury
+    # koloru, normalnych i szorstkosci - jedna liczba na wykonczenie.
+    return rozmiar
 
 
 def base_material(name, translucent=False):
@@ -385,7 +471,8 @@ def base_material(name, translucent=False):
     color.set_editor_property("parameter_name", "BaseColor")
     color.set_editor_property("default_value",
                               unreal.LinearColor(0.75, 0.74, 0.72, 1.0))
-    if not world_aligned_color(material, lib, color):
+    rozmiar = world_aligned_color(material, lib, color)
+    if rozmiar is None:
         lib.connect_material_property(color, "",
                                       unreal.MaterialProperty.MP_BASE_COLOR)
 
@@ -393,7 +480,10 @@ def base_material(name, translucent=False):
         material, unreal.MaterialExpressionScalarParameter, -520, 120)
     rough.set_editor_property("parameter_name", "Roughness")
     rough.set_editor_property("default_value", 0.8)
-    lib.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    if rozmiar is None or not world_aligned_roughness(material, lib, rozmiar,
+                                                      rough):
+        lib.connect_material_property(rough, "",
+                                      unreal.MaterialProperty.MP_ROUGHNESS)
 
     metal = lib.create_material_expression(
         material, unreal.MaterialExpressionScalarParameter, -520, 220)
@@ -450,13 +540,15 @@ def import_textures(folder):
         if not isinstance(asset, unreal.Texture2D):
             continue
         nazwa = asset.get_name()
-        if "Normal" in nazwa:
+        if "Normal" in nazwa or "Roughness" in nazwa or "Displacement" in nazwa:
+            # Wbrew intuicji mapy normalnych i szorstkosci zostaja tu zwyklymi
+            # teksturami kolorowymi. Ida przez WorldAlignedTexture, a ta ma
+            # sampler kolorowy wpisany na sztywno - tekstura oznaczona jako
+            # mapa normalnych nie przeszlaby typu i material by sie nie
+            # skompilowal. Gamme cofa sam material.
             try_set(asset, "compression_settings",
-                    unreal.TextureCompressionSettings.TC_NORMALMAP)
-            try_set(asset, "srgb", False)
-            poprawione += 1
-        elif "Roughness" in nazwa or "Displacement" in nazwa:
-            try_set(asset, "srgb", False)
+                    unreal.TextureCompressionSettings.TC_DEFAULT)
+            try_set(asset, "srgb", True)
             poprawione += 1
     step("import_tekstur", katalog=folder, plikow=len(pliki),
          poprawione_mapy=poprawione)
@@ -517,6 +609,16 @@ def finish_instance(variant_id, finish_id, finish, opaque, glass, tekstury):
         if finish.get("normal"):
             note("Wykonczenie {} prosi o mape normalnych {}, ktorej nie ma"
                  .format(finish_id, finish.get("normal")))
+    szorstkosc = tekstury.get(str(finish.get("roughness_map", ""))) \
+        if finish.get("roughness_map") else None
+    if szorstkosc is not None:
+        lib.set_material_instance_texture_parameter_value(
+            instance, "RoughnessTexture", szorstkosc)
+        lib.set_material_instance_scalar_parameter_value(
+            instance, "UseRoughnessMap", 1.0)
+    else:
+        lib.set_material_instance_scalar_parameter_value(
+            instance, "UseRoughnessMap", 0.0)
     # scale_m to realny format produktu: deska co 1,2 m, plytka co 0,3 m.
     lib.set_material_instance_scalar_parameter_value(
         instance, "TextureSize", float(finish.get("scale_m", 1.2)) * M_TO_UU)
@@ -870,7 +972,22 @@ def spawn_lights(actors, scene):
         # z zapasem na to, co widac przez okno.
         ("lumen_max_trace_distance", 2000.0),
         ("ambient_occlusion_intensity", 0.4),
-        ("bloom_intensity", 0.35),
+        ("bloom_intensity", 0.25),
+        # Krzywa filmowa. Domyslna silnika jest kontrastowa jak w grze -
+        # zdjecie wnetrza ma otwarte cienie i lagodne swiatla, bo aparat
+        # rejestruje wiekszy zakres, niz monitor pokaze.
+        ("film_slope", 0.78),
+        ("film_toe", 0.4),
+        ("film_shoulder", 0.32),
+        ("film_black_clip", 0.0),
+        ("film_white_clip", 0.03),
+        # Trzy rzeczy, ktorych render nie ma, a kazde zdjecie ma. Kazda ledwo
+        # widoczna z osobna; razem odrozniaja "fotografia" od "grafiki".
+        ("vignette_intensity", 0.32),
+        # W 5.8 ziarno nazywa sie film_grain_intensity; stara nazwa
+        # grain_intensity juz nie istnieje.
+        ("film_grain_intensity", 0.35),
+        ("scene_fringe_intensity", 0.35),
     ):
         try_set(settings, "override_" + nazwa, True)
         try_set(settings, nazwa, wartosc)
